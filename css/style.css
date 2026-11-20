@@ -235,32 +235,6 @@ body {
   padding: 1.5rem;
 }
 
-/* Banner Alert */
-.audit-banner {
-  background-color: #ffffff;
-  border: 1px solid var(--slate-200);
-  border-left: 4px solid var(--blue-primary);
-  padding: 1rem 1.25rem;
-  border-radius: var(--card-radius);
-  margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  font-size: 0.85rem;
-  color: var(--slate-600);
-}
-
-.audit-banner i {
-  color: var(--blue-primary);
-  font-size: 1.1rem;
-  margin-top: 0.15rem;
-}
-
-.banner-content strong {
-  color: var(--navy-dark);
-}
-
 /* Grid Layouts */
 .tab-content {
   display: none;

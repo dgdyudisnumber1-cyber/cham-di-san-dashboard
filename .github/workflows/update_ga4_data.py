@@ -188,10 +188,16 @@ def main():
         print(f"🎉 Cập nhật thành công! Tổng số ngày hiện có: {len(sorted_daily)} (Đến ngày {end_date_str}).")
 
     except Exception as e:
-        print(f"❌ Lỗi khi cập nhật GA4 qua API: {e}")
+        # Sanitize error message to prevent accidental key or token disclosure in Actions log
+        err_msg = str(e).split("\n")[0][:180]
+        for secret_pattern in ["private_key", "begin", "-----", "secret", "token", "password"]:
+            if secret_pattern in err_msg.lower():
+                err_msg = "Google API call failed. Credentials and tokens masked for security."
+                break
+        print(f"❌ Lỗi khi cập nhật GA4 qua API: {err_msg}")
         # Giữ nguyên dữ liệu cũ, chỉ cập nhật warning vào metadata
         try:
-            data["metadata"]["sync_warning"] = f"Lỗi đồng bộ gần nhất lúc {datetime.now(ICT).strftime('%Y-%m-%d %H:%M:%S')}: {e}"
+            data["metadata"]["sync_warning"] = f"Lỗi đồng bộ gần nhất lúc {datetime.now(ICT).strftime('%Y-%m-%d %H:%M:%S')}: {err_msg}"
             save_data(data)
         except Exception:
             pass

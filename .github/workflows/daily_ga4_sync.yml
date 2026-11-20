@@ -4,12 +4,21 @@ on:
   schedule:
     # Run daily at 02:00 UTC (09:00 AM ICT Vietnam time)
     - cron: '0 2 * * *'
-  workflow_dispatch: # Enable manual run from GitHub Actions UI
+  workflow_dispatch: # Enable manual execution from GitHub Actions tab
+  push:
+    branches:
+      - main
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages and pushing data updates
 permissions:
   contents: write
   pages: write
   id-token: write
+
+# Allow one concurrent deployment to GitHub Pages
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
 
 jobs:
   sync-ga4:
@@ -17,6 +26,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,10 +50,29 @@ jobs:
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/dashboard_data.json
+          git add data/dashboard_data.json data/dashboard_data.js
           if git diff --staged --quiet; then
             echo "No data changes detected. Everything up to date."
           else
-            git commit -m "Auto-update GA4 live data [$(date -u +'%Y-%m-%d %H:%M UTC')]"
+            git commit -m "Auto-update GA4 live data [$(date -u +'%Y-%m-%d %H:%M UTC')] [skip ci]"
             git push
           fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+  deploy-pages:
+    needs: sync-ga4
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

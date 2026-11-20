@@ -27,6 +27,10 @@ def load_data():
 def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+    # Cập nhật song song file JS cho chế độ offline/file:// preview
+    js_file = os.path.join(os.path.dirname(DATA_FILE), "dashboard_data.js")
+    with open(js_file, "w", encoding="utf-8") as f:
+        f.write("window.CHAM_DI_SAN_DATA = " + json.dumps(data, indent=2, ensure_ascii=False) + ";\n")
 
 def main():
     print("==========================================================")

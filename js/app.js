@@ -52,22 +52,32 @@ function initFilterListener() {
 // Load JSON data
 async function loadData() {
   try {
+    if (window.CHAM_DI_SAN_DATA) {
+      rawData = window.CHAM_DI_SAN_DATA;
+    }
     const res = await fetch('data/dashboard_data.json');
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-    rawData = await res.json();
-    
-    renderMetadata();
-    renderAllDashboard();
+    if (res.ok) {
+      rawData = await res.json();
+    }
   } catch (err) {
-    console.error('Lỗi tải dữ liệu dashboard:', err);
-    document.querySelector('.main-wrapper').innerHTML = `
-      <div style="background:#fee2e2; border:1px solid #ef4444; color:#991b1b; padding:1.5rem; border-radius:12px; margin-top:2rem;">
-        <h3><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải dữ liệu dashboard_data.json</h3>
-        <p style="margin-top:0.5rem;">Vui lòng kiểm tra file dữ liệu tại thư mục <code>data/dashboard_data.json</code> hoặc chạy script đồng bộ.</p>
-        <p style="margin-top:0.5rem; font-size:0.85rem;">Chi tiết lỗi: ${err.message}</p>
-      </div>
-    `;
+    if (window.CHAM_DI_SAN_DATA) {
+      console.log('Using fallback window.CHAM_DI_SAN_DATA');
+      rawData = window.CHAM_DI_SAN_DATA;
+    } else {
+      console.error('Lỗi tải dữ liệu dashboard:', err);
+      document.querySelector('.main-wrapper').innerHTML = `
+        <div style="background:#fee2e2; border:1px solid #ef4444; color:#991b1b; padding:1.5rem; border-radius:12px; margin-top:2rem;">
+          <h3><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải dữ liệu dashboard_data.json</h3>
+          <p style="margin-top:0.5rem;">Vui lòng kiểm tra file dữ liệu tại thư mục <code>data/dashboard_data.json</code> hoặc chạy script đồng bộ.</p>
+          <p style="margin-top:0.5rem; font-size:0.85rem;">Chi tiết lỗi: ${err.message}</p>
+        </div>
+      `;
+      return;
+    }
   }
+
+  renderMetadata();
+  renderAllDashboard();
 }
 
 function renderMetadata() {

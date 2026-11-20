@@ -32,8 +32,8 @@ Dashboard được chia làm 5 phân hệ chuyên sâu theo thanh điều hướ
 ### B. Sử dụng bộ lọc tương tác
 * **Bộ lọc thời gian (Global Date Filter):** Nằm tại góc trên bên phải thanh tiêu đề:
   * *Toàn kỳ:* Xem toàn bộ dữ liệu từ 05/10/2026 đến ngày mới nhất.
-  * *Kỳ lịch sử:* Lọc riêng 44 ngày đối chiếu kiểm toán (05/10/2026 – 17/11/2026).
-  * *Kỳ GA4 Live mới:* Lọc riêng các ngày dữ liệu mới được đồng bộ qua API.
+  * *Kỳ GA4 lịch sử:* Lọc riêng 44 ngày báo cáo (05/10/2026 – 17/11/2026).
+  * *Kỳ GA4 Data API:* Lọc riêng các ngày dữ liệu được đồng bộ tự động qua API.
   * *7 ngày / 14 ngày / 30 ngày gần nhất:* Xem nhịp độ hoạt động gần nhất.
 * Bộ lọc áp dụng cho chuỗi Website theo ngày. Các thẻ Facebook, TikTok, bảng KPI và các thống kê Website chỉ có tổng kỳ giữ phạm vi ghi trên từng thẻ.
 * **Chức năng In / Lưu Snapshot PDF:** Nhấp nút `In / PDF` để xuất toàn bộ báo cáo sang định dạng văn bản in hoặc PDF lưu trữ dự phòng.
@@ -43,11 +43,11 @@ Dashboard được chia làm 5 phân hệ chuyên sâu theo thanh điều hướ
 ## 3. PHƯƠNG PHÁP ĐO LƯỜNG & MINH BẠCH DỮ LIỆU KIỂM TOÁN
 
 Nhằm đảm bảo tính trung thực khoa học, hệ thống tuân thủ nghiêm ngặt các nguyên tắc kiểm toán:
-1. **Phân định rõ 2 giai đoạn dữ liệu Website:**
-   * **Giai đoạn Lịch sử (05/10/2026 – 17/11/2026, 44 ngày):** Dữ liệu kế thừa nguyên bản từ hồ sơ PDF/CSV gốc: **3.741 phiên**, **8.925 lượt xem trang**, và **3.060 người dùng-ngày**.
-   * **Giai đoạn GA4 Live (từ 18/11/2026 trở đi):** Thu thập trực tiếp từ Google Analytics 4 Property `563712293` qua API chính thức.
+1. **Dữ liệu GA4 của Website được tổng hợp theo hai giai đoạn.**
+   * **GA4 lịch sử (05/10/2026 – 17/11/2026, 44 ngày).** Số liệu tổng hợp lấy từ báo cáo GA4 đã lưu, gồm **3.741 phiên**, **8.925 lượt xem trang** và **3.060 người dùng-ngày**.
+   * **GA4 Data API (từ 18/11/2026).** Dữ liệu theo ngày được đồng bộ tự động từ Google Analytics 4 Property `563712293`.
 2. **Quy chuẩn chỉ số Người dùng Website:**
-   * Chỉ số **3.060** là **tổng người dùng-ngày cộng dồn (Daily Active Users)** trong 44 ngày, không được hiểu là người dùng duy nhất toàn kỳ (Unique Visitors) do Google Analytics không cộng gộp danh tính người dùng xuyên suốt các ngày khác nhau trong file thống kê phẳng.
+   * Số **3.060 người dùng-ngày** là tổng số người dùng hoạt động của từng ngày trong 44 ngày. Một người có thể được tính lại khi hoạt động vào ngày khác.
 3. **Chênh lệch 279 phiên trong báo cáo nguồn:**
    * Bảng phân loại nguồn truy cập lịch sử (`traffic_sources`) ghi nhận tổng cộng **3.462 phiên**, có độ chênh lệch 279 phiên so với tổng phiên toàn Website (**3.741 phiên**). Chênh lệch này có sẵn trong hồ sơ lịch sử và được giữ nguyên.
 4. **Không nhân bản số liệu (Zero Fake Data):**

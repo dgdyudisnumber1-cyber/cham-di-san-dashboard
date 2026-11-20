@@ -386,17 +386,15 @@ function renderTab2Charts() {
   const apiSources = (rawData.ga4_sources_live || []).filter(row => days.has(row.date));
   for (const row of apiSources) addSource(row.session_source, row.session_medium, row.sessions);
   const sources = [...totals].sort((a, b) => b[1] - a[1]);
-  const scope = [];
-  if (historicalSources.length) {
-    const count = historicalSources.reduce((sum, row) => sum + row.sessions, 0);
-    scope.push(`PDF/CSV toàn kỳ lịch sử: ${count.toLocaleString('vi-VN')} phiên có nguồn`);
+  const sourceNote = document.getElementById('traffic-sources-scope');
+  if (!sources.length) {
+    sourceNote.textContent = 'Không có số liệu nguồn truy cập GA4 cho khoảng ngày đã chọn.';
+  } else if (!fullHistory && historical.some(row => days.has(row.date))) {
+    sourceNote.textContent = 'Biểu đồ chỉ hiển thị phần GA4 có số liệu nguồn theo ngày.';
+  } else {
+    sourceNote.textContent = '';
   }
-  if (apiSources.length) scope.push('GA4 Data API theo ngày đã chọn');
-  if (!fullHistory && historical.some(row => days.has(row.date))) {
-    scope.push('PDF/CSV chỉ có số tổng toàn kỳ lịch sử');
-  }
-  if (!sources.length) scope.unshift('Không có nguồn truy cập cho khoảng ngày đã chọn');
-  document.getElementById('traffic-sources-scope').textContent = scope.join(' · ');
+  sourceNote.hidden = !sourceNote.textContent;
   renderChart('chart-q95', {
     type: 'doughnut',
     data: {

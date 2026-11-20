@@ -1,5 +1,5 @@
 # CHẠM DI SẢN | DIGITAL PERFORMANCE DASHBOARD
-## Báo cáo Hiệu suất Số Đa Kênh: Website (GA4 Live), TikTok Content & Facebook Marketing
+## Báo cáo Hiệu suất Số Đa Kênh: Website, TikTok và Facebook
 
 > **Đường dẫn Public Dashboard (GitHub Pages):** [https://dgdyudisnumber1-cyber.github.io/cham-di-san-dashboard/](https://dgdyudisnumber1-cyber.github.io/cham-di-san-dashboard/)  
 > **Mã nguồn Repository:** [https://github.com/dgdyudisnumber1-cyber/cham-di-san-dashboard](https://github.com/dgdyudisnumber1-cyber/cham-di-san-dashboard)  
@@ -23,7 +23,7 @@ Bảng điều khiển trực tuyến này được xây dựng nhằm cung cấ
 
 ### A. Cấu trúc 5 Tab phân tích
 Dashboard được chia làm 5 phân hệ chuyên sâu theo thanh điều hướng phía trên:
-* **Tab 1 — Tổng quan (Overview - 8 Cards):** Bức tranh toàn cảnh về lưu lượng Website, lượt xem video TikTok, tương tác mạng xã hội, phân loại lượt xem đa nền tảng và so sánh hiệu quả giữa Facebook và TikTok.
+* **Tab 1 — Tổng quan (Overview - 8 Cards):** Bức tranh toàn cảnh về lưu lượng Website, lượt xem nội dung TikTok, tương tác mạng xã hội, phân loại lượt xem đa nền tảng và so sánh hiệu quả giữa Facebook và TikTok.
 * **Tab 2 — Website GA4 (8 Cards):** Đi sâu vào hành vi người dùng trên website: Người dùng hoạt động TB/ngày, số trang xem trên mỗi phiên, nhịp độ truy cập, cơ cấu nguồn truy cập (Traffic Sources), Top 10 trang được xem nhiều nhất, các sự kiện tương tác và chuyển đổi mục tiêu.
 * **Tab 3 — Facebook (6 Cards):** Đo lường hiệu quả 19 bài đăng Fanpage: Xếp hạng bài viết theo lượt xem, lượt click chuyển đổi về Website, cơ cấu tương tác và diễn biến theo thời gian.
 * **Tab 4 — TikTok (6 Cards):** Đánh giá 8 video chính thức và 1 bài ảnh: Lượt xem trung bình mỗi video (478 views), tỷ lệ tương tác ER (3.69%), cơ cấu 4 hành vi tương tác (Thích, Lưu, Bình luận, Chia sẻ) và tương quan thời lượng video.
@@ -35,6 +35,7 @@ Dashboard được chia làm 5 phân hệ chuyên sâu theo thanh điều hướ
   * *Kỳ lịch sử:* Lọc riêng 44 ngày đối chiếu kiểm toán (05/10/2026 – 17/11/2026).
   * *Kỳ GA4 Live mới:* Lọc riêng các ngày dữ liệu mới được đồng bộ qua API.
   * *7 ngày / 14 ngày / 30 ngày gần nhất:* Xem nhịp độ hoạt động gần nhất.
+* Bộ lọc áp dụng cho chuỗi Website theo ngày. Các thẻ Facebook, TikTok, bảng KPI và các thống kê Website chỉ có tổng kỳ giữ phạm vi ghi trên từng thẻ.
 * **Chức năng In / Lưu Snapshot PDF:** Nhấp nút `In / PDF` để xuất toàn bộ báo cáo sang định dạng văn bản in hoặc PDF lưu trữ dự phòng.
 
 ---
@@ -48,7 +49,7 @@ Nhằm đảm bảo tính trung thực khoa học, hệ thống tuân thủ nghi
 2. **Quy chuẩn chỉ số Người dùng Website:**
    * Chỉ số **3.060** là **tổng người dùng-ngày cộng dồn (Daily Active Users)** trong 44 ngày, không được hiểu là người dùng duy nhất toàn kỳ (Unique Visitors) do Google Analytics không cộng gộp danh tính người dùng xuyên suốt các ngày khác nhau trong file thống kê phẳng.
 3. **Chênh lệch 279 phiên trong báo cáo nguồn:**
-   * Bảng phân loại nguồn truy cập lịch sử (`traffic_sources`) ghi nhận tổng cộng **3.462 phiên**, có độ chênh lệch 279 phiên so với tổng phiên toàn Website (**3.741 phiên**). Đây là chênh lệch có sẵn trong báo cáo gốc bên thứ ba do chưa phân loại hết các phiên trực tiếp và được giữ nguyên để bảo đảm tính khách quan.
+   * Bảng phân loại nguồn truy cập lịch sử (`traffic_sources`) ghi nhận tổng cộng **3.462 phiên**, có độ chênh lệch 279 phiên so với tổng phiên toàn Website (**3.741 phiên**). Chênh lệch này có sẵn trong hồ sơ lịch sử và được giữ nguyên.
 4. **Không nhân bản số liệu (Zero Fake Data):**
    * Mọi biểu đồ đều hiển thị số liệu nguyên bản; tuyệt đối loại bỏ các phép nhân chia nhân tạo chỉ nhằm mục đích làm đẹp tỷ lệ biểu đồ.
 
@@ -66,7 +67,7 @@ Nhằm đảm bảo tính trung thực khoa học, hệ thống tuân thủ nghi
 ┌────────────────────────────────────────────────────────┐
 │ GitHub Actions Cloud Runner (Ubuntu Latest)             │
 │ Lịch chạy: Hằng ngày lúc 09:00 AM ICT (02:00 UTC)      │
-│ • Lookback 7 ngày để bắt trọn sự kiện gửi muộn         │
+│ • Rà soát 7 ngày gần nhất, lấy bù các ngày thiếu      │
 │ • Cập nhật dữ liệu vào data/dashboard_data.json       │
 │ • Kiểm tra lỗi API & chống ghi đè dữ liệu lịch sử      │
 └───────────────────────────┬────────────────────────────┘
@@ -80,6 +81,8 @@ Nhằm đảm bảo tính trung thực khoa học, hệ thống tuân thủ nghi
 ```
 
 ---
+
+Khi thiếu dòng theo ngày, script truy vấn riêng ngày đó. Số 0 chỉ được ghi nếu API trả kết quả xác nhận cả ba chỉ số và tổng sự kiện bằng 0. Nếu phản hồi thiếu, bị giới hạn hoặc số phiên theo nguồn không khớp tổng ngày, lượt chạy thất bại và GitHub Pages tiếp tục phục vụ lần triển khai gần nhất.
 
 ## 5. CHỨNG MINH AN TOÀN & BẢO MẬT (SECURITY AUDIT)
 

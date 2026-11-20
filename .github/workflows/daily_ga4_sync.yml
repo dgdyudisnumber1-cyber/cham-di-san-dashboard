@@ -1,0 +1,48 @@
+name: Daily GA4 Data Sync & Pages Deploy
+
+on:
+  schedule:
+    # Run daily at 02:00 UTC (09:00 AM ICT Vietnam time)
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Enable manual run from GitHub Actions UI
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  sync-ga4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-analytics-data
+
+      - name: Fetch and Update GA4 Data
+        env:
+          GA4_SERVICE_ACCOUNT_JSON: ${{ secrets.GA4_SERVICE_ACCOUNT_JSON }}
+          GA4_PROPERTY_ID: "563712293"
+        run: |
+          python .github/workflows/update_ga4_data.py
+
+      - name: Commit and Push Updated Data
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/dashboard_data.json
+          if git diff --staged --quiet; then
+            echo "No data changes detected. Everything up to date."
+          else
+            git commit -m "Auto-update GA4 live data [$(date -u +'%Y-%m-%d %H:%M UTC')]"
+            git push
+          fi

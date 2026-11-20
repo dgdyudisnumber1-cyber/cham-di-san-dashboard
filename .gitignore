@@ -1,0 +1,20 @@
+# Security & Secrets
+*.pem
+*.key
+*.p12
+*.crt
+.env
+.env.*
+*service_account*.json
+credentials/
+secrets/
+
+# Python & System
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+Thumbs.db
+*.log
+tmp/
+temp/

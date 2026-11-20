@@ -91,9 +91,14 @@ function renderMetadata() {
   if (lastSyncEl) lastSyncEl.innerText = m.last_updated_at || 'Mới cập nhật';
   if (latestDateEl) latestDateEl.innerText = m.latest_ga4_date || '19/11/2026';
 
-  if (m.sync_warning && warningBanner) {
-    warningBanner.style.display = 'block';
-    warningBanner.innerText = `⚠️ Cảnh báo: ${m.sync_warning}`;
+  if (warningBanner) {
+    if (m.sync_warning) {
+      warningBanner.style.display = 'block';
+      warningBanner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>Cảnh báo đồng bộ:</strong> ${m.sync_warning}`;
+    } else {
+      warningBanner.style.display = 'none';
+      warningBanner.innerHTML = '';
+    }
   }
 }
 

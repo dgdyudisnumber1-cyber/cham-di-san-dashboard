@@ -5,7 +5,7 @@
     "ga4_property_id": "563712293",
     "reporting_start_date": "2026-10-05",
     "latest_ga4_date": "2026-11-19",
-    "last_updated_at": "2026-11-20 13:43:29+07:00",
+    "last_updated_at": "2026-11-20 13:56:51+07:00",
     "data_sources": {
       "historical_period": "2026-10-05 đến 2026-11-17 (44 ngày kiểm toán từ PDF / CSV)",
       "live_ga4_period": "2026-11-18 đến 2026-11-19 (Google Analytics 4 Data API Live)",
@@ -493,20 +493,6 @@
       "active_users": 70
     },
     {
-      "date": "2026-11-19",
-      "session_source": "(not set)",
-      "session_medium": "(not set)",
-      "sessions": 49,
-      "active_users": 49
-    },
-    {
-      "date": "2026-11-19",
-      "session_source": "(direct)",
-      "session_medium": "(none)",
-      "sessions": 48,
-      "active_users": 48
-    },
-    {
       "date": "2026-11-18",
       "session_source": "tagassistant.google.com",
       "session_medium": "referral",
@@ -519,6 +505,20 @@
       "session_medium": "referral",
       "sessions": 1,
       "active_users": 0
+    },
+    {
+      "date": "2026-11-19",
+      "session_source": "(not set)",
+      "session_medium": "(not set)",
+      "sessions": 49,
+      "active_users": 49
+    },
+    {
+      "date": "2026-11-19",
+      "session_source": "(direct)",
+      "session_medium": "(none)",
+      "sessions": 48,
+      "active_users": 48
     },
     {
       "date": "2026-11-19",

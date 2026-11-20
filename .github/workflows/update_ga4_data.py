@@ -1,250 +1,190 @@
-"""
-Script cập nhật dữ liệu GA4 tự động cho GitHub Actions
-Dự án: Chạm Di Sản | GA4 Data Visual Live Dashboard
+"""Đồng bộ các ngày GA4 đã kết thúc và xuất dữ liệu tĩnh cho Dashboard."""
 
-Nguyên tắc an toàn & toàn vẹn dữ liệu:
-1. Đọc khóa Service Account từ GitHub Secret: GA4_SERVICE_ACCOUNT_JSON.
-2. Tự động kiểm tra và lấy bù ngày thiếu (backfill) từ mốc chuyển giao 18/11/2026.
-3. Luôn quét lại ít nhất 7 ngày gần nhất (lookback) để cập nhật dữ liệu đến muộn (late-arriving events).
-4. CHỈ CẬP NHẬT các ngày nằm trong cửa sổ truy vấn [start_date, end_date].
-   Tuyệt đối GIỮ NGUYÊN các ngày nằm ngoài cửa sổ truy vấn; KHÔNG tự gán 0 cho ngày cũ.
-5. Hợp nhất ga4_sources_live theo composite key ngày, nguồn và phương tiện; không thay thế toàn bộ.
-6. Khi đồng bộ thành công: XÓA hoàn toàn cảnh báo lỗi cũ, ghi nhận sync_status = 'SUCCESS'.
-7. Khi có sự cố API: Báo lỗi rõ ràng, ghi nhận sync_status = 'FAILED', bảo lưu dữ liệu cũ và exit 1 để GitHub Actions báo lỗi.
-"""
-
-import os
-import sys
 import json
-from datetime import datetime, date, timedelta, timezone
+import os
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 
 ICT = timezone(timedelta(hours=7))
+CUTOVER = date(2026, 11, 18)
+LOOKBACK_DAYS = 7
 PROPERTY_ID = os.environ.get("GA4_PROPERTY_ID", "563712293")
-DATA_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "data", "dashboard_data.json")
+DATA_FILE = Path(__file__).resolve().parents[2] / "data" / "dashboard_data.json"
+DAILY_METRICS = ("activeUsers", "sessions", "screenPageViews")
+DAILY_FIELDS = ("active_users", "sessions", "page_views")
+PAGE_SIZE = 10_000
 
-def load_data():
-    if not os.path.exists(DATA_FILE):
-        raise FileNotFoundError(f"Data file not found at: {DATA_FILE}")
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
 
-def save_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    # Cập nhật song song file JS cho chế độ offline/file:// preview
-    js_file = os.path.join(os.path.dirname(DATA_FILE), "dashboard_data.js")
-    with open(js_file, "w", encoding="utf-8") as f:
-        f.write("window.CHAM_DI_SAN_DATA = " + json.dumps(data, indent=2, ensure_ascii=False) + ";\n")
+class IncompleteReport(Exception):
+    """Báo cáo không đủ để xác nhận số liệu cần cập nhật."""
 
-def sanitize_error(err_str):
-    err_msg = str(err_str).split("\n")[0][:180]
-    for secret_pattern in ["private_key", "begin", "-----", "secret", "token", "password"]:
-        if secret_pattern in err_msg.lower():
-            return "Google API call failed. Credentials and tokens masked for security."
-    return err_msg
 
-def sync_ga4(data, sa_json_str, simulated_today=None):
-    if not sa_json_str:
-        err_msg = "Lỗi cấu hình: GA4_SERVICE_ACCOUNT_JSON secret chưa được thiết lập."
-        print(f"❌ {err_msg}")
-        data["metadata"]["sync_status"] = "FAILED"
-        data["metadata"]["sync_warning"] = err_msg
-        save_data(data)
-        sys.exit(1)
+def dates_between(start, end):
+    return (start + timedelta(days=index) for index in range((end - start).days + 1))
 
-    from google.analytics.data_v1beta import BetaAnalyticsDataClient
+
+def query_report(client, start, end, dimensions, metrics):
     from google.analytics.data_v1beta.types import (
-        DateRange, Dimension, Metric, RunReportRequest
+        DateRange, Dimension, Metric, OrderBy, RunReportRequest,
     )
-    from google.oauth2 import service_account
 
-    sa_info = json.loads(sa_json_str)
-    credentials = service_account.Credentials.from_service_account_info(sa_info)
-    client = BetaAnalyticsDataClient(credentials=credentials)
-    print("✓ Khởi tạo Google Analytics Data Client thành công.")
+    rows = []
+    expected_count = None
+    while True:
+        report = client.run_report(RunReportRequest(
+            property=f"properties/{PROPERTY_ID}",
+            date_ranges=[DateRange(start_date=str(start), end_date=str(end))],
+            dimensions=[Dimension(name=name) for name in dimensions],
+            metrics=[Metric(name=name) for name in metrics],
+            order_bys=[
+                OrderBy(dimension=OrderBy.DimensionOrderBy(dimension_name=name))
+                for name in dimensions
+            ],
+            offset=len(rows),
+            limit=PAGE_SIZE,
+            keep_empty_rows=True,
+        ))
+        metadata = report.metadata
+        if (metadata.subject_to_thresholding or metadata.data_loss_from_other_row
+                or metadata.sampling_metadatas):
+            raise IncompleteReport("GA4 báo đã giới hạn hoặc lấy mẫu dữ liệu.")
+        if expected_count is None:
+            expected_count = report.row_count
+        if report.row_count != expected_count:
+            raise IncompleteReport("Số dòng GA4 thay đổi trong lúc phân trang.")
+        if not report.rows and len(rows) < expected_count:
+            raise IncompleteReport("Thiếu dòng GA4 trong lúc phân trang.")
+        for row in report.rows:
+            values = tuple(value.value for value in row.dimension_values)
+            counts = tuple(int(value.value) for value in row.metric_values)
+            if len(values) != len(dimensions) or len(counts) != len(metrics) or min(counts) < 0:
+                raise IncompleteReport("GA4 trả về dòng dữ liệu sai cấu trúc.")
+            rows.append((values, counts))
+        if len(rows) == expected_count:
+            return rows
+        if len(rows) > expected_count:
+            raise IncompleteReport("Số dòng GA4 thực nhận khác số dòng công bố.")
 
-    # 1. Xác định phạm vi ngày
-    cutover_date = date(2026, 11, 18)
-    now_vn = datetime.now(ICT) if simulated_today is None else simulated_today
-    today_vn = now_vn.date() if isinstance(now_vn, datetime) else now_vn
-    yesterday_vn = today_vn - timedelta(days=1)
 
-    if yesterday_vn < cutover_date:
-        print(f"Chưa đến mốc ngày cần cập nhật GA4 (yesterday: {yesterday_vn} < cutover: {cutover_date}).")
-        return
+def sync_ga4(data, client, now_vn):
+    end = now_vn.date() - timedelta(days=1)
+    if end < CUTOVER:
+        return None
 
-    existing_daily_map = {item["date"]: item for item in data.get("website_daily", [])}
+    existing = {date.fromisoformat(row["date"]): row for row in data["website_daily"]}
+    missing = next((day for day in dates_between(CUTOVER, end) if day not in existing), end)
+    start = max(CUTOVER, min(missing, end - timedelta(days=LOOKBACK_DAYS - 1)))
+    print(f"Truy vấn GA4 từ {start} đến {end}.", flush=True)
 
-    # Phát hiện các ngày còn thiếu trong chuỗi từ cutover_date đến yesterday_vn
-    missing_dates = []
-    curr_check = cutover_date
-    while curr_check <= yesterday_vn:
-        d_str = curr_check.strftime("%Y-%m-%d")
-        if d_str not in existing_daily_map:
-            missing_dates.append(curr_check)
-        curr_check += timedelta(days=1)
+    daily = {}
+    for (raw_date,), counts in query_report(client, start, end, ("date",), DAILY_METRICS):
+        day = datetime.strptime(raw_date, "%Y%m%d").date()
+        if not start <= day <= end or day in daily:
+            raise IncompleteReport("Ngày trong báo cáo GA4 bị trùng hoặc ngoài phạm vi.")
+        daily[day] = counts
 
-    # Luôn quét lại 7 ngày gần nhất để xử lý dữ liệu đến muộn
-    lookback_days = 7
-    lookback_start = yesterday_vn - timedelta(days=lookback_days)
+    for day in dates_between(start, end):
+        if any(daily.get(day, ())):
+            continue
+        # Xác nhận ngày thiếu bằng báo cáo riêng và kiểm tra tổng sự kiện trước khi ghi 0.
+        totals = query_report(client, day, day, (), (*DAILY_METRICS, "eventCount"))
+        if len(totals) != 1:
+            raise IncompleteReport(f"Chưa xác nhận được dữ liệu cho ngày {day}.")
+        _, counts = totals[0]
+        if not any(counts[:3]) and counts[3] != 0:
+            raise IncompleteReport(f"GA4 vẫn ghi nhận sự kiện vào ngày {day}.")
+        daily[day] = counts[:3]
 
-    # Cửa sổ truy vấn phải bao quát cả ngày thiếu sớm nhất và khoảng lookback 7 ngày
-    if missing_dates:
-        earliest_missing = min(missing_dates)
-        calc_start_date = min(earliest_missing, lookback_start)
-        print(f"🔍 Phát hiện {len(missing_dates)} ngày còn thiếu. Sớm nhất: {earliest_missing}.")
-    else:
-        calc_start_date = lookback_start
+    sources = []
+    source_keys = set()
+    source_sessions = {}
+    for values, counts in query_report(
+        client, start, end, ("date", "sessionSource", "sessionMedium"), ("sessions", "activeUsers"),
+    ):
+        raw_date, source, medium = values
+        day = datetime.strptime(raw_date, "%Y%m%d").date()
+        if day not in daily or values in source_keys:
+            raise IncompleteReport("Dòng nguồn truy cập bị trùng hoặc ngoài phạm vi.")
+        source_keys.add(values)
+        sessions, users = counts
+        source_sessions[day] = source_sessions.get(day, 0) + sessions
+        sources.append({
+            "date": str(day), "session_source": source, "session_medium": medium,
+            "sessions": sessions, "active_users": users,
+        })
 
-    # Không bao giờ truy vấn trước mốc chuyển giao 18/11/2026
-    start_date = max(cutover_date, calc_start_date)
-    end_date = yesterday_vn
+    for day, counts in daily.items():
+        sessions = counts[1]
+        if source_sessions.get(day, 0) != sessions:
+            raise IncompleteReport(f"Tổng phiên theo nguồn không khớp báo cáo ngày {day}.")
 
-    start_date_str = start_date.strftime("%Y-%m-%d")
-    end_date_str = end_date.strftime("%Y-%m-%d")
-
-    print(f"📡 Cửa sổ truy vấn GA4: {start_date_str} đến {end_date_str} (Lookback 7 ngày & Bù ngày thiếu)...")
-
-    # 2. Truy vấn Daily Metrics từ GA4
-    daily_req = RunReportRequest(
-        property=f"properties/{PROPERTY_ID}",
-        dimensions=[Dimension(name="date")],
-        metrics=[
-            Metric(name="activeUsers"),
-            Metric(name="sessions"),
-            Metric(name="screenPageViews"),
-            Metric(name="engagedSessions"),
-            Metric(name="engagementRate"),
-            Metric(name="averageSessionDuration"),
-        ],
-        date_ranges=[DateRange(start_date=start_date_str, end_date=end_date_str)],
-    )
-    daily_res = client.run_report(daily_req)
-
-    ga4_days = {}
-    for row in daily_res.rows:
-        raw_d = row.dimension_values[0].value
-        d_fmt = f"{raw_d[:4]}-{raw_d[4:6]}-{raw_d[6:]}"
-        ga4_days[d_fmt] = {
-            "active_users": int(row.metric_values[0].value),
-            "sessions": int(row.metric_values[1].value),
-            "page_views": int(row.metric_values[2].value),
-            "engaged_sessions": int(row.metric_values[3].value),
-            "engagement_rate": float(row.metric_values[4].value),
-            "average_session_duration": float(row.metric_values[5].value),
+    for day, counts in daily.items():
+        day_text = str(day)
+        existing[day] = {
+            "date": day_text,
+            "period": f"{day_text}/{day_text}",
+            "original_source": f"GA4 Property {PROPERTY_ID}",
+            **existing.get(day, {}),
+            **dict(zip(DAILY_FIELDS, counts)),
+            "data_source": "Google Analytics Data API",
+            "sync_type": "Động (GA4 Daily API - GitHub Actions)",
         }
-
-    # 3. CẬP NHẬT CHỈ CÁC NGÀY TRONG PHẠM VI [start_date, end_date]
-    # Tuyệt đối KHÔNG duyệt hoặc ghi đè ngày nằm ngoài cửa sổ truy vấn!
-    curr_d = start_date
-    while curr_d <= end_date:
-        d_str = curr_d.strftime("%Y-%m-%d")
-        metrics = ga4_days.get(d_str, {
-            "active_users": 0, "sessions": 0, "page_views": 0,
-            "engaged_sessions": 0, "engagement_rate": 0.0, "average_session_duration": 0.0
-        })
-
-        if d_str in existing_daily_map:
-            # Cập nhật ngày nằm trong phạm vi truy vấn
-            existing_daily_map[d_str].update({
-                "active_users": metrics["active_users"],
-                "sessions": metrics["sessions"],
-                "page_views": metrics["page_views"],
-                "data_source": "GA4 Tự động (Google Analytics Live)",
-                "sync_type": "Động (GA4 Daily API - GitHub Actions)"
-            })
-        else:
-            # Bổ sung ngày mới
-            existing_daily_map[d_str] = {
-                "date": d_str,
-                "active_users": metrics["active_users"],
-                "sessions": metrics["sessions"],
-                "page_views": metrics["page_views"],
-                "data_source": "GA4 Tự động (Google Analytics Live)",
-                "sync_type": "Động (GA4 Daily API - GitHub Actions)",
-                "period": f"{d_str}/{d_str}",
-                "original_source": f"GA4 Property {PROPERTY_ID}"
-            }
-        curr_d += timedelta(days=1)
-
-    sorted_daily = sorted(existing_daily_map.values(), key=lambda x: x["date"])
-    data["website_daily"] = sorted_daily
-
-    # 4. Truy vấn và hợp nhất Traffic Sources
-    sources_req = RunReportRequest(
-        property=f"properties/{PROPERTY_ID}",
-        dimensions=[
-            Dimension(name="date"),
-            Dimension(name="sessionSource"),
-            Dimension(name="sessionMedium"),
-        ],
-        metrics=[
-            Metric(name="sessions"),
-            Metric(name="activeUsers"),
-        ],
-        date_ranges=[DateRange(start_date=start_date_str, end_date=end_date_str)],
-    )
-    sources_res = client.run_report(sources_req)
-
-    new_live_sources = []
-    for row in sources_res.rows:
-        raw_d = row.dimension_values[0].value
-        d_fmt = f"{raw_d[:4]}-{raw_d[4:6]}-{raw_d[6:]}"
-        src = row.dimension_values[1].value
-        med = row.dimension_values[2].value
-        sess = int(row.metric_values[0].value)
-        users = int(row.metric_values[1].value)
-        new_live_sources.append({
-            "date": d_fmt,
-            "session_source": src,
-            "session_medium": med,
-            "sessions": sess,
-            "active_users": users
-        })
-
-    # HỢP NHẤT: Giữ nguyên các nguồn cũ nằm ngoài cửa sổ truy vấn [start_date, end_date]
-    existing_sources = data.get("ga4_sources_live", [])
     kept_sources = [
-        s for s in existing_sources
-        if s.get("date", "") < start_date_str or s.get("date", "") > end_date_str
+        row for row in data.get("ga4_sources_live", [])
+        if not str(start) <= row["date"] <= str(end)
     ]
-    merged_sources = kept_sources + new_live_sources
-    merged_sources.sort(key=lambda x: (x["date"], -x.get("sessions", 0)))
-    data["ga4_sources_live"] = merged_sources
+    metadata = data["metadata"]
+    latest = max(day for day in existing if day >= CUTOVER)
+    return {
+        **data,
+        "website_daily": [existing[day] for day in sorted(existing)],
+        "ga4_sources_live": sorted(
+            kept_sources + sources,
+            key=lambda row: (row["date"], -row["sessions"], row["session_source"], row["session_medium"]),
+        ),
+        "metadata": {
+            **{key: value for key, value in metadata.items() if key not in {"sync_warning", "sync_error"}},
+            "last_updated_at": now_vn.isoformat(sep=" ", timespec="seconds"),
+            "latest_ga4_date": str(latest),
+            "sync_status": "SUCCESS",
+            "data_sources": {
+                **metadata["data_sources"],
+                "live_ga4_period": f"{CUTOVER} đến {latest} (Google Analytics Data API)",
+            },
+        },
+    }
 
-    # 5. Cập nhật Metadata & XÓA CẢNH BÁO LỖI CŨ KHI THÀNH CÔNG
-    now_str = now_vn.strftime("%Y-%m-%d %H:%M:%S+07:00") if isinstance(now_vn, datetime) else f"{now_vn} 12:00:00+07:00"
-    data["metadata"]["last_updated_at"] = now_str
-    data["metadata"]["latest_ga4_date"] = end_date_str
-    data["metadata"]["sync_status"] = "SUCCESS"
-    data["metadata"]["data_sources"]["live_ga4_period"] = f"2026-11-18 đến {end_date_str} (Google Analytics 4 Data API Live)"
-
-    # Xóa hoàn toàn cảnh báo lỗi cũ khi lần đồng bộ này thành công
-    data["metadata"].pop("sync_warning", None)
-    data["metadata"].pop("sync_error", None)
-
-    save_data(data)
-    print(f"🎉 Đồng bộ thành công! Tổng số ngày: {len(sorted_daily)} (Đến ngày {end_date_str}).")
 
 def main():
-    print("==========================================================")
-    print("🚀 GITHUB ACTIONS: GA4 DATA API SYNC")
-    print(f"Property ID: {PROPERTY_ID}")
-    print("==========================================================")
-
-    data = load_data()
-    sa_json_str = os.environ.get("GA4_SERVICE_ACCOUNT_JSON")
-
     try:
-        sync_ga4(data, sa_json_str)
-    except Exception as e:
-        err_msg = sanitize_error(e)
-        print(f"❌ Lỗi khi cập nhật GA4 qua API: {err_msg}")
-        data["metadata"]["sync_status"] = "FAILED"
-        data["metadata"]["sync_warning"] = f"Lỗi đồng bộ GA4 lúc {datetime.now(ICT).strftime('%Y-%m-%d %H:%M:%S')}: {err_msg}"
-        save_data(data)
-        # Báo lỗi rõ ràng để GitHub Actions dừng với exit 1
-        sys.exit(1)
+        secret = os.environ.get("GA4_SERVICE_ACCOUNT_JSON")
+        if not secret:
+            raise IncompleteReport("Thiếu cấu hình xác thực GA4 trong GitHub Actions.")
+
+        from google.analytics.data_v1beta import BetaAnalyticsDataClient
+        from google.oauth2 import service_account
+
+        credentials = service_account.Credentials.from_service_account_info(json.loads(secret))
+        client = BetaAnalyticsDataClient(credentials=credentials)
+        updated = sync_ga4(json.loads(DATA_FILE.read_text(encoding="utf-8")), client, datetime.now(ICT))
+        if updated is None:
+            print("Chưa có ngày GA4 nào đã kết thúc kể từ mốc chuyển giao.")
+            return 0
+
+        payload = json.dumps(updated, indent=2, ensure_ascii=False)
+        DATA_FILE.write_text(payload, encoding="utf-8")
+        DATA_FILE.with_suffix(".js").write_text(
+            "window.CHAM_DI_SAN_DATA = " + payload + ";\n", encoding="utf-8",
+        )
+        print(f"Đã đồng bộ {len(updated['website_daily'])} ngày. Mốc GA4: {updated['metadata']['latest_ga4_date']}.")
+        return 0
+    except IncompleteReport as error:
+        print(f"::error::{error}")
+    except Exception as error:
+        # Không in thông báo thô của thư viện xác thực và API.
+        print(f"::error::Đồng bộ GA4 thất bại ({type(error).__name__}).")
+    return 1
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

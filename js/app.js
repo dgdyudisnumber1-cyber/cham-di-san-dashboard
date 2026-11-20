@@ -18,7 +18,7 @@ function initTabs() {
     btn.addEventListener('click', () => {
       tabBtns.forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      
+
       btn.classList.add('active');
       const targetId = btn.getAttribute('data-tab');
       const targetContent = document.getElementById(targetId);
@@ -52,13 +52,13 @@ function initFilterListener() {
 // Load JSON data
 async function loadData() {
   try {
-    if (window.CHAM_DI_SAN_DATA) {
-      rawData = window.CHAM_DI_SAN_DATA;
-    }
-    const res = await fetch('data/dashboard_data.json');
-    if (res.ok) {
+    rawData = window.CHAM_DI_SAN_DATA;
+    if (location.protocol !== 'file:') {
+      const res = await fetch('data/dashboard_data.json');
+      if (!res.ok) throw new Error('Không thể tải dữ liệu Dashboard');
       rawData = await res.json();
     }
+    if (!rawData) throw new Error('Thiếu tệp dữ liệu Dashboard');
   } catch (err) {
     if (window.CHAM_DI_SAN_DATA) {
       console.log('Using fallback window.CHAM_DI_SAN_DATA');
@@ -69,7 +69,6 @@ async function loadData() {
         <div style="background:#fee2e2; border:1px solid #ef4444; color:#991b1b; padding:1.5rem; border-radius:12px; margin-top:2rem;">
           <h3><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải dữ liệu dashboard_data.json</h3>
           <p style="margin-top:0.5rem;">Vui lòng kiểm tra file dữ liệu tại thư mục <code>data/dashboard_data.json</code> hoặc chạy script đồng bộ.</p>
-          <p style="margin-top:0.5rem; font-size:0.85rem;">Chi tiết lỗi: ${err.message}</p>
         </div>
       `;
       return;
@@ -88,13 +87,15 @@ function renderMetadata() {
   const latestDateEl = document.getElementById('meta-latest-date');
   const warningBanner = document.getElementById('sync-warning-banner');
 
-  if (lastSyncEl) lastSyncEl.innerText = m.last_updated_at || 'Mới cập nhật';
-  if (latestDateEl) latestDateEl.innerText = m.latest_ga4_date || '19/11/2026';
+  if (lastSyncEl) lastSyncEl.innerText = m.last_updated_at || 'Chưa có';
+  if (latestDateEl) latestDateEl.innerText = m.latest_ga4_date || 'Chưa có';
+  document.getElementById('meta-report-mode').textContent =
+    document.body.dataset.snapshot === 'true' ? 'BẢN CHỤP NỘP BÀI' : 'BÁO CÁO TRỰC TUYẾN';
 
   if (warningBanner) {
     if (m.sync_warning) {
       warningBanner.style.display = 'block';
-      warningBanner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>Cảnh báo đồng bộ:</strong> ${m.sync_warning}`;
+      warningBanner.textContent = `Cảnh báo đồng bộ: ${m.sync_warning}`;
     } else {
       warningBanner.style.display = 'none';
       warningBanner.innerHTML = '';
@@ -109,10 +110,12 @@ function getFilteredWebsiteDaily() {
   if (currentFilter === 'all') return list;
   if (currentFilter === 'history') return list.filter(d => d.date <= '2026-11-17');
   if (currentFilter === 'live') return list.filter(d => d.date >= '2026-11-18');
-  
-  if (currentFilter === '7d') return list.slice(-7);
-  if (currentFilter === '14d') return list.slice(-14);
-  if (currentFilter === '30d') return list.slice(-30);
+
+  if (['7d', '14d', '30d'].includes(currentFilter) && list.length) {
+    const start = new Date(list.at(-1).date);
+    start.setUTCDate(start.getUTCDate() - (parseInt(currentFilter, 10) - 1));
+    return list.filter(row => row.date >= start.toISOString().slice(0, 10));
+  }
 
   return list;
 }
@@ -164,10 +167,16 @@ function renderTab1KPIs() {
   // Q86
   const elQ86 = document.getElementById('kpi-q86');
   if (elQ86) elQ86.innerText = tiktokViews.toLocaleString('vi-VN');
+  const videoViews = rawData.tiktok_content.filter(row => row.post_type === 'Video')
+    .reduce((sum, row) => sum + (row.views || 0), 0);
+  document.getElementById('tiktok-view-breakdown').textContent =
+    `Video: ${videoViews.toLocaleString('vi-VN')} · Bài ảnh: ${(tiktokViews - videoViews).toLocaleString('vi-VN')}`;
 
   // Q87
   const elQ87 = document.getElementById('kpi-q87');
   if (elQ87) elQ87.innerText = totalInteractions.toLocaleString('vi-VN');
+  document.getElementById('social-interaction-breakdown').textContent =
+    `Facebook: ${fbInteractions.toLocaleString('vi-VN')} · TikTok: ${ttInteractions.toLocaleString('vi-VN')}`;
 }
 
 function renderTab1Charts() {
@@ -230,7 +239,7 @@ function renderTab1Charts() {
     data: {
       labels: [
         'Website (Lượt xem trang)',
-        'TikTok (Lượt xem video)',
+        'TikTok (Lượt xem nội dung)',
         'Facebook (Lượt xem bài viết)'
       ],
       datasets: [{
@@ -249,7 +258,7 @@ function renderTab1Charts() {
             label: function(ctx) {
               const val = ctx.raw || 0;
               const total = totalWebViews + totalTtViews + totalFbViews;
-              const pct = ((val / total) * 100).toFixed(1);
+              const pct = (total ? (val / total) * 100 : 0).toFixed(1);
               return `${ctx.label}: ${val.toLocaleString('vi-VN')} (${pct}%)`;
             }
           }
@@ -259,27 +268,7 @@ function renderTab1Charts() {
     }
   });
 
-  // Q90: Tỷ lệ đạt KPI theo Nền tảng (Bar)
-  renderChart('chart-q90', {
-    type: 'bar',
-    data: {
-      labels: ['Website (61.2%)', 'Facebook (20.2%)', 'TikTok (13.7%)'],
-      datasets: [{
-        label: 'Tỷ lệ đạt mục tiêu trung bình (%)',
-        data: [61.2, 20.2, 13.7],
-        backgroundColor: ['#2563eb', '#1877f2', '#0f172a'],
-        borderRadius: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } },
-        x: { grid: { display: false } }
-      }
-    }
-  });
+  renderPlatformKpis('chart-q90');
 
   // Q91: So sánh hiệu quả Facebook và TikTok (Grouped Bar)
   const fbInteractions = rawData.facebook_posts.reduce((acc, r) => acc + (r.interactions || 0), 0);
@@ -384,13 +373,36 @@ function renderTab2Charts() {
   });
 
   // Q95: Cơ cấu nguồn truy cập Website (Donut)
-  const sources = rawData.traffic_sources || [];
+  const historical = rawData.website_daily.filter(row => row.date < '2026-11-18');
+  const days = new Set(daily.map(row => row.date));
+  const fullHistory = historical.length > 0 && historical.every(row => days.has(row.date));
+  const totals = new Map();
+  function addSource(source, medium, sessions) {
+    const label = `${source} / ${medium}`;
+    totals.set(label, (totals.get(label) || 0) + sessions);
+  }
+  const historicalSources = fullHistory ? (rawData.traffic_sources || []) : [];
+  for (const row of historicalSources) addSource(row.source, row.medium, row.sessions);
+  const apiSources = (rawData.ga4_sources_live || []).filter(row => days.has(row.date));
+  for (const row of apiSources) addSource(row.session_source, row.session_medium, row.sessions);
+  const sources = [...totals].sort((a, b) => b[1] - a[1]);
+  const scope = [];
+  if (historicalSources.length) {
+    const count = historicalSources.reduce((sum, row) => sum + row.sessions, 0);
+    scope.push(`PDF/CSV toàn kỳ lịch sử: ${count.toLocaleString('vi-VN')} phiên có nguồn`);
+  }
+  if (apiSources.length) scope.push('GA4 Data API theo ngày đã chọn');
+  if (!fullHistory && historical.some(row => days.has(row.date))) {
+    scope.push('PDF/CSV chỉ có số tổng toàn kỳ lịch sử');
+  }
+  if (!sources.length) scope.unshift('Không có nguồn truy cập cho khoảng ngày đã chọn');
+  document.getElementById('traffic-sources-scope').textContent = scope.join(' · ');
   renderChart('chart-q95', {
     type: 'doughnut',
     data: {
-      labels: sources.map(s => `${s.source} / ${s.medium}`),
+      labels: sources.map(([label]) => label),
       datasets: [{
-        data: sources.map(s => s.sessions),
+        data: sources.map(([, sessions]) => sessions),
         backgroundColor: [
           '#2563eb', '#38bdf8', '#34d399', '#fbbf24',
           '#f87171', '#a78bfa', '#f472b6', '#94a3b8'
@@ -634,7 +646,7 @@ function renderTab4() {
   if (elQ107) elQ107.innerText = `${erPct}%`;
 
   // Q108: Xếp hạng video TikTok theo lượt xem (Horizontal Bar)
-  const sortedByViews = [...items].sort((a, b) => b.views - a.views);
+  const sortedByViews = [...videos].sort((a, b) => b.views - a.views);
   renderChart('chart-q108', {
     type: 'bar',
     data: {
@@ -687,12 +699,12 @@ function renderTab4() {
   renderChart('chart-q109', {
     type: 'bar',
     data: {
-      labels: items.map((_, i) => `Video ${i+1}`),
+      labels: videos.map((_, i) => `Video ${i+1}`),
       datasets: [
-        { label: 'Thích (Likes)', data: items.map(v => v.likes), backgroundColor: '#ef4444' },
-        { label: 'Lưu (Saves)', data: items.map(v => v.saves), backgroundColor: '#f59e0b' },
-        { label: 'Bình luận', data: items.map(v => v.comments), backgroundColor: '#3b82f6' },
-        { label: 'Chia sẻ', data: items.map(v => v.shares), backgroundColor: '#10b981' }
+        { label: 'Thích (Likes)', data: videos.map(v => v.likes), backgroundColor: '#ef4444' },
+        { label: 'Lưu (Saves)', data: videos.map(v => v.saves), backgroundColor: '#f59e0b' },
+        { label: 'Bình luận', data: videos.map(v => v.comments), backgroundColor: '#3b82f6' },
+        { label: 'Chia sẻ', data: videos.map(v => v.shares), backgroundColor: '#10b981' }
       ]
     },
     options: {
@@ -709,18 +721,20 @@ function renderTab4() {
   renderChart('chart-q111', {
     type: 'bar',
     data: {
-      labels: items.map((_, i) => `Video ${i+1}`),
+      labels: videos.map((_, i) => `Video ${i+1}`),
       datasets: [
         {
           label: 'Lượt xem (Views)',
-          data: items.map(v => v.views),
+          data: videos.map(v => v.views),
           backgroundColor: '#0f172a',
           yAxisID: 'y'
         },
         {
           label: 'Thời lượng (Giây)',
-          data: items.map(v => v.duration_seconds || 0),
+          data: videos.map(v => v.duration_seconds > 0 ? v.duration_seconds : null),
           type: 'line',
+          showLine: false,
+          pointRadius: 4,
           borderColor: '#06b6d4',
           borderWidth: 2,
           yAxisID: 'y1'
@@ -741,13 +755,61 @@ function renderTab4() {
 // ==========================================
 // TAB 5: ĐÁNH GIÁ KPI (6 CARDS)
 // ==========================================
+function renderPlatformKpis(canvasId, horizontal = false) {
+  const kpis = rawData.kpi_results || [];
+  const platforms = [
+    { key: 'WEBSITE', label: 'Website', color: '#2563eb' },
+    { key: 'FACEBOOK', label: 'Facebook', color: '#1877f2' },
+    { key: 'TIKTOK', label: 'TikTok', color: '#0f172a' }
+  ];
+  const averages = platforms.map(platform => {
+    const rows = kpis.filter(row => row.platform === platform.key);
+    return rows.length ? averageAchievement(rows) : null;
+  });
+  renderChart(canvasId, {
+    type: 'bar',
+    data: {
+      labels: platforms.map(platform => platform.label),
+      datasets: [{
+        label: 'Tỷ lệ hoàn thành trung bình',
+        data: averages,
+        backgroundColor: platforms.map(platform => platform.color),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: horizontal ? 'y' : 'x',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: context => formatPercent(context.raw) } }
+      },
+      scales: {
+        [horizontal ? 'x' : 'y']: {
+          beginAtZero: true, suggestedMax: 100, ticks: { callback: value => value + '%' }
+        }
+      }
+    }
+  });
+}
+
+function averageAchievement(rows) {
+  return rows.reduce((sum, row) => sum + row.achievement_pct, 0) / rows.length;
+}
+
+function formatPercent(value) {
+  return value.toLocaleString('vi-VN', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  }) + '%';
+}
+
 function renderTab5() {
   const kpis = rawData.kpi_results || [];
 
   // Q112: Tỷ lệ hoàn thành trung bình
-  const avgPct = (kpis.reduce((acc, r) => acc + (r.achievement_pct || 0), 0) / (kpis.length || 1)).toFixed(2);
   const elQ112 = document.getElementById('kpi-q112');
-  if (elQ112) elQ112.innerText = `${avgPct}%`;
+  if (elQ112) elQ112.innerText = kpis.length ? formatPercent(averageAchievement(kpis)) : '–';
 
   // Q113: Số KPI đạt mục tiêu
   const metCount = kpis.filter(k => k.status === 'DAT').length;
@@ -771,26 +833,11 @@ function renderTab5() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
+      scales: { x: { beginAtZero: true, suggestedMax: 100, ticks: { callback: v => v + '%' } } }
     }
   });
 
-  // Q117: Tỷ lệ hoàn thành KPI trung bình theo Nền tảng (Donut)
-  renderChart('chart-q117', {
-    type: 'doughnut',
-    data: {
-      labels: ['Website (61.2%)', 'Facebook (20.2%)', 'TikTok (13.7%)'],
-      datasets: [{
-        data: [61.2, 20.2, 13.7],
-        backgroundColor: ['#2563eb', '#1877f2', '#0f172a']
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '60%'
-    }
-  });
+  renderPlatformKpis('chart-q117', true);
 
   // Q115: Đối chiếu Mục tiêu (100%) vs Thực tế (%) từng KPI
   renderChart('chart-q115', {
@@ -813,7 +860,7 @@ function renderTab5() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
+      scales: { y: { beginAtZero: true, suggestedMax: 100, ticks: { callback: v => v + '%' } } }
     }
   });
 
@@ -849,8 +896,8 @@ function renderKpiTable(kpis) {
       <td><span class="badge-status status-chua-dat">${k.platform}</span></td>
       <td>${k.metric}</td>
       <td><strong>${k.target.toLocaleString('vi-VN')}</strong> ${k.unit}</td>
-      <td>${k.result.toLocaleString('vi-VN')} ${k.unit}</td>
-      <td><strong>${k.achievement_pct}%</strong></td>
+      <td>${k.result.toLocaleString('vi-VN')} ${k.result_type === 'upper_bound_nonunique_userdays' ? 'người dùng-ngày' : k.unit}</td>
+      <td><strong>${k.result_type === 'upper_bound_nonunique_userdays' ? '≤ ' : ''}${formatPercent(k.achievement_pct)}</strong></td>
       <td><span class="badge-status ${k.status === 'DAT' ? 'status-dat' : 'status-chua-dat'}">${k.status}</span></td>
       <td>${k.minimum_gap.toLocaleString('vi-VN')}</td>
       <td style="font-size:0.75rem; color:#64748b;">${k.note || ''}</td>

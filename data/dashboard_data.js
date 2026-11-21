@@ -4,11 +4,11 @@ window.CHAM_DI_SAN_DATA = {
     "description": "Báo cáo hiệu suất số đa kênh: Website (GA4), TikTok và Facebook",
     "ga4_property_id": "563712293",
     "reporting_start_date": "2026-10-05",
-    "latest_ga4_date": "2026-11-19",
-    "last_updated_at": "2026-11-20 14:52:57+07:00",
+    "latest_ga4_date": "2026-11-20",
+    "last_updated_at": "2026-11-21 15:54:53+07:00",
     "data_sources": {
       "historical_period": "2026-10-05 đến 2026-11-17 (44 ngày từ báo cáo GA4 đã lưu)",
-      "live_ga4_period": "2026-11-18 đến 2026-11-19 (Google Analytics Data API)",
+      "live_ga4_period": "2026-11-18 đến 2026-11-20 (Google Analytics Data API)",
       "facebook_period": "2026-10-05 đến 2026-11-17 (19 bài đăng)",
       "tiktok_period": "2026-10-05 đến 2026-11-17 (8 video + 1 ảnh)"
     },
@@ -475,6 +475,16 @@ window.CHAM_DI_SAN_DATA = {
       "page_views": 286,
       "data_source": "Google Analytics Data API",
       "sync_type": "Động (GA4 Daily API - GitHub Actions)"
+    },
+    {
+      "date": "2026-11-20",
+      "period": "2026-11-20/2026-11-20",
+      "original_source": "GA4 Property 563712293",
+      "active_users": 3,
+      "sessions": 8,
+      "page_views": 20,
+      "data_source": "Google Analytics Data API",
+      "sync_type": "Động (GA4 Daily API - GitHub Actions)"
     }
   ],
   "ga4_sources_live": [
@@ -525,6 +535,27 @@ window.CHAM_DI_SAN_DATA = {
       "session_source": "tagassistant.google.com",
       "session_medium": "referral",
       "sessions": 1,
+      "active_users": 0
+    },
+    {
+      "date": "2026-11-20",
+      "session_source": "(not set)",
+      "session_medium": "(not set)",
+      "sessions": 4,
+      "active_users": 3
+    },
+    {
+      "date": "2026-11-20",
+      "session_source": "(direct)",
+      "session_medium": "(none)",
+      "sessions": 2,
+      "active_users": 2
+    },
+    {
+      "date": "2026-11-20",
+      "session_source": "tagassistant.google.com",
+      "session_medium": "referral",
+      "sessions": 2,
       "active_users": 0
     }
   ],

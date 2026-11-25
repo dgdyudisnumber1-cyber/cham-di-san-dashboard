@@ -246,5 +246,38 @@ window.CHAM_DI_SAN_TRAFFIC_SCENARIO = {
       "session_medium": "referral",
       "sessions": 0
     }
+  ],
+  "daily_source_sheet": "06_GA4_KPI_Daily.csv",
+  "daily_rows": [
+    {
+      "date": "2026-11-20",
+      "sessions": 72,
+      "page_views": 166,
+      "active_users": 61
+    },
+    {
+      "date": "2026-11-21",
+      "sessions": 69,
+      "page_views": 159,
+      "active_users": 59
+    },
+    {
+      "date": "2026-11-22",
+      "sessions": 71,
+      "page_views": 164,
+      "active_users": 60
+    },
+    {
+      "date": "2026-11-23",
+      "sessions": 73,
+      "page_views": 168,
+      "active_users": 62
+    },
+    {
+      "date": "2026-11-24",
+      "sessions": 72,
+      "page_views": 166,
+      "active_users": 61
+    }
   ]
 };

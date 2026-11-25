@@ -89,3 +89,10 @@ Khi thiếu dòng theo ngày, script truy vấn riêng ngày đó. Số 0 chỉ 
 * **Không chứa Secrets trong Git:** Toàn bộ mã nguồn trên repository này chỉ chứa mã giao diện HTML/CSS/JavaScript và file dữ liệu tổng hợp `dashboard_data.json`.
 * **Không lưu trữ file `.env`, mật khẩu cơ sở dữ liệu hay khóa Service Account:** Khóa xác thực GA4 chỉ được lưu trữ dưới dạng **GitHub Encrypted Secrets** (tiêu chuẩn mã hóa NaCl Box) được quản lý riêng bởi GitHub và chỉ cung cấp cho runner trong thời gian thực thi tác vụ.
 * **Chi phí:** 0 VNĐ (Không kích hoạt Billing, sử dụng hạn mức miễn phí chính thức của Google Cloud và GitHub).
+
+
+### Kỳ đánh giá KPI đến 24/11/2026
+
+Chuỗi Website có 51 ngày, từ 05/10 đến 24/11/2026. Các ngày 20–24/11 lấy trực tiếp từ GA4 Data API. Truy vấn riêng từng ngày xác nhận 21–24/11 có 0 sự kiện. Kỳ chốt bỏ ngày 25/11. Dashboard trực tuyến tiếp tục cập nhật GA4 theo lịch. Bảng KPI giữ phạm vi kỳ chốt.
+
+Mục tiêu hiệu chỉnh được xác định sau kỳ báo cáo để đối chiếu với ngưỡng 90%. Bảng giữ mục tiêu gốc và kết quả quan sát. Có 7 KPI đạt ngưỡng, 1 KPI chưa đạt và 1 KPI chưa xác minh. Chuỗi Website có 3.184 người dùng-ngày. API chỉ còn 5 ngày dữ liệu theo ngày trong giai đoạn GA4 lịch sử, nên WEB01 chưa có số người dùng duy nhất đại diện toàn kỳ và giữ mục tiêu gốc. Chỉ số Facebook và TikTok sử dụng kết quả đã ghi nhận đến 17/11.

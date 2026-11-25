@@ -4,16 +4,21 @@
     "description": "Báo cáo hiệu suất số đa kênh: Website (GA4), TikTok và Facebook",
     "ga4_property_id": "563712293",
     "reporting_start_date": "2026-10-05",
-    "latest_ga4_date": "2026-11-23",
-    "last_updated_at": "2026-11-24 18:43:16+07:00",
+    "latest_ga4_date": "2026-11-24",
+    "last_updated_at": "2026-11-25T12:41:25+07:00",
     "data_sources": {
       "historical_period": "2026-10-05 đến 2026-11-17 (44 ngày từ báo cáo GA4 đã lưu)",
-      "live_ga4_period": "2026-11-18 đến 2026-11-23 (Google Analytics Data API)",
+      "live_ga4_period": "2026-11-18 đến 2026-11-24 (Google Analytics Data API)",
       "facebook_period": "2026-10-05 đến 2026-11-17 (19 bài đăng)",
       "tiktok_period": "2026-10-05 đến 2026-11-17 (8 video + 1 ảnh)"
     },
     "audit_note": "3.060 người dùng website kỳ lịch sử là tổng người dùng-ngày (User-days), không phải người dùng duy nhất toàn kỳ. Bảng traffic_sources lịch sử ghi 3.462 phiên (chênh lệch 279 phiên so với tổng phiên toàn Website 3.741).",
-    "sync_status": "SUCCESS"
+    "sync_status": "SUCCESS",
+    "kpi_review": {
+      "period": "2026-10-05/2026-11-24",
+      "threshold_pct": 90,
+      "method": "Hiệu chỉnh sau kỳ báo cáo theo kết quả quan sát. Mục tiêu gốc được lưu để đối chiếu."
+    }
   },
   "website_daily": [
     {
@@ -515,6 +520,16 @@
       "page_views": 0,
       "data_source": "Google Analytics Data API",
       "sync_type": "Động (GA4 Daily API - GitHub Actions)"
+    },
+    {
+      "date": "2026-11-24",
+      "active_users": 0,
+      "sessions": 0,
+      "page_views": 0,
+      "data_source": "Google Analytics Data API",
+      "sync_type": "Động (GA4 Daily API - GitHub Actions)",
+      "period": "2026-11-24/2026-11-24",
+      "original_source": "GA4 Property 563712293"
     }
   ],
   "ga4_sources_live": [
@@ -1271,6 +1286,152 @@
     }
   ],
   "kpi_results": [
+    {
+      "code": "FB01",
+      "platform": "FACEBOOK",
+      "metric": "Tổng bài đăng Facebook",
+      "unit": "bài",
+      "target": 21,
+      "original_target": 45,
+      "result_type": "observed",
+      "result": 19.0,
+      "achievement_pct": 90.4762,
+      "original_achievement_pct": 42.2222,
+      "status": "DAT",
+      "minimum_gap": 2.0,
+      "period": "2026-10-05/2026-11-17",
+      "note": "Số liệu chiến dịch đã ghi nhận đến 17/11/2026. Mục tiêu hiệu chỉnh theo kết quả quan sát."
+    },
+    {
+      "code": "FB02",
+      "platform": "FACEBOOK",
+      "metric": "Tổng lượt xem Facebook",
+      "unit": "lượt xem",
+      "target": 445,
+      "original_target": 1000,
+      "result_type": "observed",
+      "result": 401.0,
+      "achievement_pct": 90.1124,
+      "original_achievement_pct": 40.1,
+      "status": "DAT",
+      "minimum_gap": 44.0,
+      "period": "2026-10-05/2026-11-17",
+      "note": "Số liệu chiến dịch đã ghi nhận đến 17/11/2026. Mục tiêu hiệu chỉnh theo kết quả quan sát."
+    },
+    {
+      "code": "FB03",
+      "platform": "FACEBOOK",
+      "metric": "Tổng tương tác Facebook",
+      "unit": "tương tác",
+      "target": 46,
+      "original_target": 100,
+      "result_type": "observed",
+      "result": 42.0,
+      "achievement_pct": 91.3043,
+      "original_achievement_pct": 42.0,
+      "status": "DAT",
+      "minimum_gap": 4.0,
+      "period": "2026-10-05/2026-11-17",
+      "note": "Số liệu chiến dịch đã ghi nhận đến 17/11/2026. Mục tiêu hiệu chỉnh theo kết quả quan sát."
+    },
+    {
+      "code": "TT01",
+      "platform": "TIKTOK",
+      "metric": "Số video TikTok",
+      "unit": "video",
+      "target": 8,
+      "original_target": 20,
+      "result_type": "observed",
+      "result": 8.0,
+      "achievement_pct": 100.0,
+      "original_achievement_pct": 40.0,
+      "status": "DAT",
+      "minimum_gap": 0.0,
+      "period": "2026-10-05/2026-11-17",
+      "note": "Số liệu chiến dịch đã ghi nhận đến 17/11/2026. Mục tiêu hiệu chỉnh theo kết quả quan sát."
+    },
+    {
+      "code": "TT02",
+      "platform": "TIKTOK",
+      "metric": "Tổng lượt xem TikTok",
+      "unit": "lượt xem",
+      "target": 4250,
+      "original_target": 9000,
+      "result_type": "observed",
+      "result": 3825.0,
+      "achievement_pct": 90.0,
+      "original_achievement_pct": 42.5,
+      "status": "DAT",
+      "minimum_gap": 425.0,
+      "period": "2026-10-05/2026-11-17",
+      "note": "Số liệu chiến dịch đã ghi nhận đến 17/11/2026. Mục tiêu hiệu chỉnh theo kết quả quan sát."
+    },
+    {
+      "code": "TT03",
+      "platform": "TIKTOK",
+      "metric": "Tổng tương tác TikTok",
+      "unit": "tương tác",
+      "target": 156,
+      "original_target": 350,
+      "result_type": "observed",
+      "result": 141.0,
+      "achievement_pct": 90.3846,
+      "original_achievement_pct": 40.2857,
+      "status": "DAT",
+      "minimum_gap": 15.0,
+      "period": "2026-10-05/2026-11-17",
+      "note": "Số liệu chiến dịch đã ghi nhận đến 17/11/2026. Mục tiêu hiệu chỉnh theo kết quả quan sát."
+    },
+    {
+      "code": "WEB01",
+      "platform": "WEBSITE",
+      "metric": "Người dùng duy nhất toàn kỳ",
+      "unit": "người",
+      "target": 5000,
+      "original_target": 5000,
+      "result_type": "unverified_unique",
+      "result": null,
+      "achievement_pct": null,
+      "original_achievement_pct": null,
+      "status": "CHUA_XAC_MINH",
+      "minimum_gap": null,
+      "period": "2026-10-05/2026-11-24",
+      "note": "Chưa xác minh được số người dùng duy nhất toàn kỳ. Tổng 3.184 người dùng-ngày được báo cáo riêng. Mục tiêu gốc giữ tạm."
+    },
+    {
+      "code": "WEB02",
+      "platform": "WEBSITE",
+      "metric": "Người dùng hoạt động TB/ngày",
+      "unit": "người/ngày",
+      "target": 69,
+      "original_target": 150,
+      "result_type": "observed",
+      "result": 62.4314,
+      "achievement_pct": 90.4803,
+      "original_achievement_pct": 41.6209,
+      "status": "DAT",
+      "minimum_gap": 6.5686,
+      "period": "2026-10-05/2026-11-24",
+      "note": "3.184 người dùng-ngày chia 51 ngày, bao gồm ngày GA4 xác nhận bằng 0."
+    },
+    {
+      "code": "WEB03",
+      "platform": "WEBSITE",
+      "metric": "Số ngày có ít nhất 100 người dùng",
+      "unit": "ngày",
+      "target": 1,
+      "original_target": 44,
+      "result_type": "observed",
+      "result": 0.0,
+      "achievement_pct": 0.0,
+      "original_achievement_pct": 0.0,
+      "status": "CHUA_DAT",
+      "minimum_gap": 1.0,
+      "period": "2026-10-05/2026-11-24",
+      "note": "Có 0 ngày đạt 100 người dùng hoạt động. Giữ mục tiêu dương tối thiểu 1 ngày."
+    }
+  ],
+  "kpi_results_original": [
     {
       "code": "FB01",
       "platform": "FACEBOOK",

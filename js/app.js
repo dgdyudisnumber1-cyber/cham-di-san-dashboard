@@ -25,7 +25,9 @@ function initTabs() {
       if (targetContent) {
         targetContent.classList.add('active');
         // Trigger chart resize on tab switch
-        window.dispatchEvent(new Event('resize'));
+        requestAnimationFrame(() => {
+          targetContent.querySelectorAll('canvas').forEach(canvas => charts[canvas.id]?.resize());
+        });
       }
     });
   });
@@ -762,7 +764,7 @@ function renderPlatformKpis(canvasId, horizontal = false) {
   ];
   const averages = platforms.map(platform => {
     const rows = kpis.filter(row => row.platform === platform.key);
-    return rows.length ? averageAchievement(rows) : null;
+    return averageAchievement(rows);
   });
   renderChart(canvasId, {
     type: 'bar',
@@ -781,7 +783,7 @@ function renderPlatformKpis(canvasId, horizontal = false) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: context => formatPercent(context.raw) } }
+        tooltip: { callbacks: { label: context => displayPercent(context.raw) } }
       },
       scales: {
         [horizontal ? 'x' : 'y']: {
@@ -793,7 +795,9 @@ function renderPlatformKpis(canvasId, horizontal = false) {
 }
 
 function averageAchievement(rows) {
-  return rows.reduce((sum, row) => sum + row.achievement_pct, 0) / rows.length;
+  const verified = rows.filter(row => Number.isFinite(row.achievement_pct));
+  if (!verified.length) return null;
+  return verified.reduce((sum, row) => sum + row.achievement_pct, 0) / verified.length;
 }
 
 function formatPercent(value) {
@@ -802,12 +806,20 @@ function formatPercent(value) {
   }) + '%';
 }
 
+function displayPercent(value) {
+  return Number.isFinite(value) ? formatPercent(value) : '–';
+}
+
+function displayNumber(value) {
+  return Number.isFinite(value) ? value.toLocaleString('vi-VN') : '–';
+}
+
 function renderTab5() {
   const kpis = rawData.kpi_results || [];
 
   // Q112: Tỷ lệ hoàn thành trung bình
   const elQ112 = document.getElementById('kpi-q112');
-  if (elQ112) elQ112.innerText = kpis.length ? formatPercent(averageAchievement(kpis)) : '–';
+  if (elQ112) elQ112.innerText = displayPercent(averageAchievement(kpis));
 
   // Q113: Số KPI đạt mục tiêu
   const metCount = kpis.filter(k => k.status === 'DAT').length;
@@ -822,7 +834,7 @@ function renderTab5() {
       datasets: [{
         label: 'Tỷ lệ đạt mục tiêu (%)',
         data: kpis.map(k => k.achievement_pct),
-        backgroundColor: kpis.map(k => k.achievement_pct >= 100 ? '#10b981' : '#ef4444'),
+        backgroundColor: kpis.map(k => k.status === 'DAT' ? '#10b981' : '#ef4444'),
         borderRadius: 4
       }]
     },
@@ -844,8 +856,8 @@ function renderTab5() {
       labels: kpis.map(k => k.code),
       datasets: [
         {
-          label: 'Mục tiêu thiết kế (100%)',
-          data: kpis.map(() => 100),
+          label: 'Ngưỡng đạt (90%)',
+          data: kpis.map(() => rawData.metadata.kpi_review?.threshold_pct ?? 100),
           backgroundColor: '#e2e8f0'
         },
         {
@@ -888,16 +900,19 @@ function renderTab5() {
 function renderKpiTable(kpis) {
   const tbody = document.getElementById('kpi-table-body');
   if (!tbody) return;
+  const statusLabel = { DAT: 'Đạt', CHUA_DAT: 'Chưa đạt', CHUA_XAC_MINH: 'Chưa xác minh' };
   tbody.innerHTML = kpis.map(k => `
     <tr>
       <td><strong>${k.code}</strong></td>
       <td><span class="badge-status status-chua-dat">${k.platform}</span></td>
       <td>${k.metric}</td>
-      <td><strong>${k.target.toLocaleString('vi-VN')}</strong> ${k.unit}</td>
-      <td>${k.result.toLocaleString('vi-VN')} ${k.result_type === 'upper_bound_nonunique_userdays' ? 'người dùng-ngày' : k.unit}</td>
-      <td><strong>${k.result_type === 'upper_bound_nonunique_userdays' ? '≤ ' : ''}${formatPercent(k.achievement_pct)}</strong></td>
-      <td><span class="badge-status ${k.status === 'DAT' ? 'status-dat' : 'status-chua-dat'}">${k.status}</span></td>
-      <td>${k.minimum_gap.toLocaleString('vi-VN')}</td>
+      <td>${displayNumber(k.original_target)} ${k.unit}</td>
+      <td><strong>${displayNumber(k.target)}</strong> ${k.unit}</td>
+      <td>${Number.isFinite(k.result) ? displayNumber(k.result) + ' ' + k.unit : 'Chưa xác minh'}</td>
+      <td>${displayPercent(k.original_achievement_pct)}</td>
+      <td><strong>${displayPercent(k.achievement_pct)}</strong></td>
+      <td><span class="badge-status ${k.status === 'DAT' ? 'status-dat' : 'status-chua-dat'}">${statusLabel[k.status] || k.status}</span></td>
+      <td>${displayNumber(k.minimum_gap)}</td>
       <td style="font-size:0.75rem; color:#64748b;">${k.note || ''}</td>
     </tr>
   `).join('');

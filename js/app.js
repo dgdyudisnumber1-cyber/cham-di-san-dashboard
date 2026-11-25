@@ -203,8 +203,9 @@ function applyTrendEstimates(daily, datasets, metrics) {
       data: dataset.data.map((actual, point) => hasEstimate(point) ? estimates[point] : actual),
       actualValues: dataset.data,
       estimates,
+      cubicInterpolationMode: 'monotone',
       pointStyle: context => hasEstimate(context.dataIndex) ? 'rectRot' : 'circle',
-      pointRadius: context => hasEstimate(context.dataIndex) ? 4 : (dataset.pointRadius ?? 3),
+      pointRadius: context => hasEstimate(context.dataIndex) ? 3 : (dataset.pointRadius ?? 3),
       segment: {
         borderDash: context => hasEstimate(context.p0DataIndex) || hasEstimate(context.p1DataIndex)
           ? [7, 4] : []

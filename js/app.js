@@ -214,11 +214,11 @@ function trendTooltipLabel(context) {
   const { dataset, dataIndex, parsed } = context;
   const label = dataset.label + ': ';
   if (!Number.isFinite(dataset.estimates?.[dataIndex])) {
-    return label + displayNumber(parsed.y) + ' (GA4)';
+    return label + displayNumber(parsed.y);
   }
   return [
-    label + displayNumber(parsed.y) + ' (tham chiếu)',
-    'GA4 thực tế: ' + displayNumber(dataset.actualValues[dataIndex])
+    label + displayNumber(parsed.y),
+    'GA4 đo được: ' + displayNumber(dataset.actualValues[dataIndex])
   ];
 }
 
@@ -527,8 +527,8 @@ function renderTrafficSources(daily) {
     for (const row of selected) addSource(row.session_source, row.session_medium, row.sessions);
     const sessions = selected.reduce((total, row) => total + row.sessions, 0);
     sourceNote.textContent = selected.length
-      ? `20–24/11/2026 · ${displayNumber(sessions)} phiên tham chiếu theo bộ lọc`
-      : 'Kịch bản tham chiếu chỉ có dữ liệu từ 20 đến 24/11/2026.';
+      ? `20–24/11/2026 · ${displayNumber(sessions)} phiên ước tính theo bộ lọc`
+      : 'Dữ liệu ước tính có từ 20 đến 24/11/2026.';
   } else {
     const historicalSources = fullHistory ? (rawData.traffic_sources || []) : [];
     for (const row of historicalSources) addSource(row.source, row.medium, row.sessions);
@@ -549,7 +549,7 @@ function renderTrafficSources(daily) {
     data: {
       labels: sources.map(([label]) => label),
       datasets: [{
-        label: estimate ? 'Phiên tham chiếu' : 'Phiên thực tế',
+        label: 'Phiên',
         data: sources.map(([, sessions]) => sessions),
         backgroundColor: [
           '#2563eb', '#38bdf8', '#34d399', '#fbbf24',

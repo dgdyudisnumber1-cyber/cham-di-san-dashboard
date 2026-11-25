@@ -205,11 +205,7 @@ function applyTrendEstimates(daily, datasets, metrics) {
       estimates,
       cubicInterpolationMode: 'monotone',
       pointStyle: context => hasEstimate(context.dataIndex) ? 'rectRot' : 'circle',
-      pointRadius: context => hasEstimate(context.dataIndex) ? 3 : (dataset.pointRadius ?? 3),
-      segment: {
-        borderDash: context => hasEstimate(context.p0DataIndex) || hasEstimate(context.p1DataIndex)
-          ? [7, 4] : []
-      }
+      pointRadius: context => hasEstimate(context.dataIndex) ? 3 : (dataset.pointRadius ?? 3)
     };
   });
 }
@@ -221,7 +217,7 @@ function trendTooltipLabel(context) {
     return label + displayNumber(parsed.y) + ' (GA4)';
   }
   return [
-    label + displayNumber(parsed.y) + ' (ước tính từ Sheet)',
+    label + displayNumber(parsed.y) + ' (tham chiếu)',
     'GA4 thực tế: ' + displayNumber(dataset.actualValues[dataIndex])
   ];
 }
@@ -531,8 +527,8 @@ function renderTrafficSources(daily) {
     for (const row of selected) addSource(row.session_source, row.session_medium, row.sessions);
     const sessions = selected.reduce((total, row) => total + row.sessions, 0);
     sourceNote.textContent = selected.length
-      ? `20–24/11/2026 · ${displayNumber(sessions)} phiên ước tính theo bộ lọc`
-      : 'Kịch bản ước tính chỉ có dữ liệu từ 20 đến 24/11/2026.';
+      ? `20–24/11/2026 · ${displayNumber(sessions)} phiên tham chiếu theo bộ lọc`
+      : 'Kịch bản tham chiếu chỉ có dữ liệu từ 20 đến 24/11/2026.';
   } else {
     const historicalSources = fullHistory ? (rawData.traffic_sources || []) : [];
     for (const row of historicalSources) addSource(row.source, row.medium, row.sessions);
@@ -553,7 +549,7 @@ function renderTrafficSources(daily) {
     data: {
       labels: sources.map(([label]) => label),
       datasets: [{
-        label: estimate ? 'Phiên ước tính' : 'Phiên thực tế',
+        label: estimate ? 'Phiên tham chiếu' : 'Phiên thực tế',
         data: sources.map(([, sessions]) => sessions),
         backgroundColor: [
           '#2563eb', '#38bdf8', '#34d399', '#fbbf24',

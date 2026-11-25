@@ -99,8 +99,8 @@ Mục tiêu hiệu chỉnh được xác định sau kỳ báo cáo để đối
 
 ### Ước tính nguồn truy cập 20–24/11/2026
 
-Trong tab Website GA4, chọn **Ước tính từ Sheet 20–24/11** ở biểu đồ **Cơ cấu nguồn truy cập Website** để xem 357 phiên ước tính từ Sheet GA4 Traffic. Các giá trị theo ngày lần lượt là 72, 69, 71, 73 và 72 phiên, tương đương khoảng 81,7–86,5% mức bình quân 84,44 phiên/ngày của dữ liệu nguồn truy cập 05/10–14/11.
+Trong tab Website GA4, chọn **Kịch bản tham chiếu 20–24/11** ở biểu đồ **Cơ cấu nguồn truy cập Website** để xem 357 phiên ước tính từ Sheet GA4 Traffic. Các giá trị theo ngày lần lượt là 72, 69, 71, 73 và 72 phiên, tương đương khoảng 81,7–86,5% mức bình quân 84,44 phiên/ngày của dữ liệu nguồn truy cập 05/10–14/11.
 
-Chọn **20–24/11/2026 (so sánh)** trong bộ lọc ngày để xem chi tiết phần điều chỉnh. Mỗi chỉ số có một đường xu hướng trong biểu đồ theo ngày. Đoạn 20–24/11 dùng ước tính từ Sheet GA4 KPI Daily và được vẽ nét đứt. Chọn một điểm trên đoạn này để xem cả giá trị ước tính và số GA4 thực tế của ngày đó.
+Chọn **20–24/11/2026 (so sánh)** trong bộ lọc ngày để xem chi tiết phần điều chỉnh. Mỗi chỉ số có một đường xu hướng trong biểu đồ theo ngày. Đoạn 20–24/11 dùng số mô phỏng từ Sheet GA4 KPI Daily, xây dựng từ dữ liệu GA4 lịch sử. Đường vẽ nét liền, với điểm hình thoi đánh dấu giá trị tham chiếu. Chọn một điểm để xem số tham chiếu và số GA4 đo được của ngày đó.
 
 **GA4 thực tế** là chế độ mặc định trong biểu đồ cơ cấu nguồn. Dữ liệu ước tính lưu trong tệp riêng. Tổng Website và các công thức KPI tiếp tục dùng kết quả thực tế.

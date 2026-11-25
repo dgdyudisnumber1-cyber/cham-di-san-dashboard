@@ -43,6 +43,10 @@ function initFilterListener() {
     });
   }
 
+  document.getElementById('traffic-data-mode').addEventListener('change', () => {
+    if (rawData) renderTrafficSources(getFilteredWebsiteDaily());
+  });
+
   const printBtn = document.getElementById('btn-print-snapshot');
   if (printBtn) {
     printBtn.addEventListener('click', () => {
@@ -56,7 +60,7 @@ async function loadData() {
   try {
     rawData = window.CHAM_DI_SAN_DATA;
     if (location.protocol !== 'file:') {
-      const res = await fetch('data/dashboard_data.json');
+      const res = await fetch('data/dashboard_data.json', { cache: 'no-cache' });
       if (!res.ok) throw new Error('Không thể tải dữ liệu Dashboard');
       rawData = await res.json();
     }
@@ -374,50 +378,7 @@ function renderTab2Charts() {
     }
   });
 
-  // Q95: Cơ cấu nguồn truy cập Website (Donut)
-  const historical = rawData.website_daily.filter(row => row.date < '2026-11-18');
-  const days = new Set(daily.map(row => row.date));
-  const fullHistory = historical.length > 0 && historical.every(row => days.has(row.date));
-  const totals = new Map();
-  function addSource(source, medium, sessions) {
-    const label = `${source} / ${medium}`;
-    totals.set(label, (totals.get(label) || 0) + sessions);
-  }
-  const historicalSources = fullHistory ? (rawData.traffic_sources || []) : [];
-  for (const row of historicalSources) addSource(row.source, row.medium, row.sessions);
-  const apiSources = (rawData.ga4_sources_live || []).filter(row => days.has(row.date));
-  for (const row of apiSources) addSource(row.session_source, row.session_medium, row.sessions);
-  const sources = [...totals].sort((a, b) => b[1] - a[1]);
-  const sourceNote = document.getElementById('traffic-sources-scope');
-  if (!sources.length) {
-    sourceNote.textContent = 'Không có số liệu nguồn truy cập GA4 cho khoảng ngày đã chọn.';
-  } else if (!fullHistory && historical.some(row => days.has(row.date))) {
-    sourceNote.textContent = 'Biểu đồ chỉ hiển thị phần GA4 có số liệu nguồn theo ngày.';
-  } else {
-    sourceNote.textContent = '';
-  }
-  sourceNote.hidden = !sourceNote.textContent;
-  renderChart('chart-q95', {
-    type: 'doughnut',
-    data: {
-      labels: sources.map(([label]) => label),
-      datasets: [{
-        data: sources.map(([, sessions]) => sessions),
-        backgroundColor: [
-          '#2563eb', '#38bdf8', '#34d399', '#fbbf24',
-          '#f87171', '#a78bfa', '#f472b6', '#94a3b8'
-        ]
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
-      },
-      cutout: '60%'
-    }
-  });
+  renderTrafficSources(daily);
 
   // Q96: Top 10 trang được truy cập nhiều nhất (Horizontal Bar)
   const pages = rawData.page_details || [];
@@ -502,6 +463,65 @@ function renderTab2Charts() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: { x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
+    }
+  });
+}
+
+function renderTrafficSources(daily) {
+  // Q95: Cơ cấu nguồn truy cập Website (Donut)
+  const historical = rawData.website_daily.filter(row => row.date < '2026-11-18');
+  const days = new Set(daily.map(row => row.date));
+  const fullHistory = historical.length > 0 && historical.every(row => days.has(row.date));
+  const totals = new Map();
+  function addSource(source, medium, sessions) {
+    const label = `${source} / ${medium}`;
+    totals.set(label, (totals.get(label) || 0) + sessions);
+  }
+  const estimate = document.getElementById('traffic-data-mode').value === 'estimate';
+  const sourceNote = document.getElementById('traffic-sources-scope');
+  if (estimate) {
+    const scenario = window.CHAM_DI_SAN_TRAFFIC_SCENARIO;
+    const selected = (scenario?.rows || []).filter(row => days.has(row.date));
+    for (const row of selected) addSource(row.session_source, row.session_medium, row.sessions);
+    const sessions = selected.reduce((total, row) => total + row.sessions, 0);
+    sourceNote.textContent = selected.length
+      ? `20–24/11/2026 · ${displayNumber(sessions)} phiên ước tính theo bộ lọc`
+      : 'Kịch bản ước tính chỉ có dữ liệu từ 20 đến 24/11/2026.';
+  } else {
+    const historicalSources = fullHistory ? (rawData.traffic_sources || []) : [];
+    for (const row of historicalSources) addSource(row.source, row.medium, row.sessions);
+    const apiSources = (rawData.ga4_sources_live || []).filter(row => days.has(row.date));
+    for (const row of apiSources) addSource(row.session_source, row.session_medium, row.sessions);
+    if (!totals.size) {
+      sourceNote.textContent = 'Không có số liệu nguồn truy cập GA4 cho khoảng ngày đã chọn.';
+    } else if (!fullHistory && historical.some(row => days.has(row.date))) {
+      sourceNote.textContent = 'Biểu đồ chỉ hiển thị phần GA4 có số liệu nguồn theo ngày.';
+    } else {
+      sourceNote.textContent = '';
+    }
+  }
+  sourceNote.hidden = !sourceNote.textContent;
+  const sources = [...totals].sort((a, b) => b[1] - a[1]);
+  renderChart('chart-q95', {
+    type: 'doughnut',
+    data: {
+      labels: sources.map(([label]) => label),
+      datasets: [{
+        label: estimate ? 'Phiên ước tính' : 'Phiên thực tế',
+        data: sources.map(([, sessions]) => sessions),
+        backgroundColor: [
+          '#2563eb', '#38bdf8', '#34d399', '#fbbf24',
+          '#f87171', '#a78bfa', '#f472b6', '#94a3b8'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
+      },
+      cutout: '60%'
     }
   });
 }

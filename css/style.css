@@ -235,6 +235,14 @@ body {
   padding: 1.5rem;
 }
 
+.traffic-data-mode {
+  display: block;
+  width: 100%;
+  max-width: 17rem;
+  margin: 0.3rem 0;
+  font-size: 0.8rem;
+}
+
 /* Grid Layouts */
 .tab-content {
   display: none;

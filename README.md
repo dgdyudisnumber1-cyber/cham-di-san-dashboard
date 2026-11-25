@@ -96,3 +96,9 @@ Khi thiếu dòng theo ngày, script truy vấn riêng ngày đó. Số 0 chỉ 
 Chuỗi Website có 51 ngày, từ 05/10 đến 24/11/2026. Các ngày 20–24/11 lấy trực tiếp từ GA4 Data API. Truy vấn riêng từng ngày xác nhận 21–24/11 có 0 sự kiện. Kỳ chốt bỏ ngày 25/11. Dashboard trực tuyến tiếp tục cập nhật GA4 theo lịch. Bảng KPI giữ phạm vi kỳ chốt.
 
 Mục tiêu hiệu chỉnh được xác định sau kỳ báo cáo để đối chiếu với ngưỡng 90%. Bảng giữ mục tiêu gốc và kết quả quan sát. Có 7 KPI đạt ngưỡng, 1 KPI chưa đạt và 1 KPI chưa xác minh. Chuỗi Website có 3.184 người dùng-ngày. API chỉ còn 5 ngày dữ liệu theo ngày trong giai đoạn GA4 lịch sử, nên WEB01 chưa có số người dùng duy nhất đại diện toàn kỳ và giữ mục tiêu gốc. Chỉ số Facebook và TikTok sử dụng kết quả đã ghi nhận đến 17/11.
+
+### Ước tính nguồn truy cập 20–24/11/2026
+
+Trong tab Website GA4, chọn **Ước tính từ Sheet 20–24/11** ở biểu đồ **Cơ cấu nguồn truy cập Website** để xem 357 phiên ước tính từ Sheet GA4 Traffic. Các giá trị theo ngày lần lượt là 72, 69, 71, 73 và 72 phiên, tương đương khoảng 81,7–86,5% mức bình quân 84,44 phiên/ngày của dữ liệu nguồn truy cập 05/10–14/11.
+
+**GA4 thực tế** là chế độ mặc định. Dữ liệu ước tính nằm trong tệp riêng và chỉ dùng cho chế độ xem này. Tổng Website và các công thức KPI tiếp tục dùng kết quả thực tế.

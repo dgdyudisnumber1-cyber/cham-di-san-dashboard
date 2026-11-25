@@ -32,8 +32,7 @@ Dashboard được chia làm 5 phân hệ chuyên sâu theo thanh điều hướ
 ### B. Sử dụng bộ lọc tương tác
 * **Bộ lọc thời gian (Global Date Filter):** Nằm tại góc trên bên phải thanh tiêu đề:
   * *Toàn kỳ:* Xem toàn bộ dữ liệu từ 05/10/2026 đến ngày mới nhất.
-  * *Kỳ GA4 lịch sử:* Lọc riêng 44 ngày báo cáo (05/10/2026 – 17/11/2026).
-  * *Kỳ GA4 Data API:* Lọc riêng các ngày dữ liệu được đồng bộ tự động qua API.
+  * *Tự chọn khoảng ngày:* Chọn **Từ ngày**, **Đến ngày** và bấm **Áp dụng**. Chọn cùng một ngày ở hai ô để xem riêng ngày đó.
   * *7 ngày / 14 ngày / 30 ngày gần nhất:* Xem nhịp độ hoạt động gần nhất.
 * Bộ lọc áp dụng cho chuỗi Website theo ngày. Các thẻ Facebook, TikTok, bảng KPI và các thống kê Website chỉ có tổng kỳ giữ phạm vi ghi trên từng thẻ.
 * **Chức năng In / Lưu Snapshot PDF:** Nhấp nút `In / PDF` để xuất toàn bộ báo cáo sang định dạng văn bản in hoặc PDF lưu trữ dự phòng.
@@ -101,6 +100,6 @@ Mục tiêu hiệu chỉnh được xác định sau kỳ báo cáo để đối
 
 Trong tab Website GA4, chọn **Ước tính từ Sheet 20–24/11** ở biểu đồ **Cơ cấu nguồn truy cập Website** để xem 357 phiên ước tính từ Sheet GA4 Traffic. Các giá trị theo ngày lần lượt là 72, 69, 71, 73 và 72 phiên, tương đương khoảng 81,7–86,5% mức bình quân 84,44 phiên/ngày của dữ liệu nguồn truy cập 05/10–14/11.
 
-Chọn **20–24/11/2026 (so sánh)** trong bộ lọc ngày để xem chi tiết phần điều chỉnh. Mỗi chỉ số có một đường xu hướng trong biểu đồ theo ngày. Đoạn 20–24/11 dùng số ước tính từ Sheet GA4 KPI Daily, dựa trên dữ liệu GA4 lịch sử. Đường vẽ nét liền. Chọn điểm hình thoi để xem giá trị hiển thị và số GA4 đo được của ngày đó.
+Để xem riêng giai đoạn 20–24/11/2026, chọn **Tự chọn khoảng ngày**, đặt ngày bắt đầu và kết thúc rồi bấm **Áp dụng**. Mỗi chỉ số có một đường xu hướng trong biểu đồ theo ngày. Đoạn 20–24/11 dùng số ước tính từ Sheet GA4 KPI Daily, dựa trên dữ liệu GA4 lịch sử. Đường vẽ nét liền. Chọn điểm hình thoi để xem giá trị hiển thị và số GA4 đo được của ngày đó.
 
 **GA4 thực tế** là chế độ mặc định trong biểu đồ cơ cấu nguồn. Dữ liệu ước tính lưu trong tệp riêng. Tổng Website và các công thức KPI tiếp tục dùng kết quả thực tế.

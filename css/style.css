@@ -130,6 +130,29 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.custom-date-range:not([hidden]) {
+  display: flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.5rem;
+}
+
+.custom-date-range label {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--slate-700);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.custom-date-range input {
+  width: 10rem;
+  max-width: 100%;
+  min-height: 2rem;
 }
 
 .filter-select {

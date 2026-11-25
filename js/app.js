@@ -3,6 +3,7 @@
 
 let rawData = null;
 let currentFilter = 'all';
+let customDateRange = null;
 const charts = {};
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -36,12 +37,36 @@ function initTabs() {
 // Global Filter
 function initFilterListener() {
   const select = document.getElementById('global-date-filter');
-  if (select) {
-    select.addEventListener('change', (e) => {
-      currentFilter = e.target.value;
-      updateFilteredViews();
-    });
-  }
+  const form = document.getElementById('custom-date-range');
+  const start = document.getElementById('date-from');
+  const end = document.getElementById('date-to');
+
+  select.addEventListener('change', () => {
+    form.hidden = select.value !== 'custom';
+    if (!form.hidden) {
+      const dates = getFilteredWebsiteDaily();
+      start.value = dates[0]?.date || start.min;
+      end.value = dates.at(-1)?.date || end.max;
+      end.setCustomValidity('');
+      start.focus();
+      return;
+    }
+    currentFilter = select.value;
+    updateFilteredViews();
+  });
+
+  form.addEventListener('input', () => {
+    const reversed = start.value && end.value && start.value > end.value;
+    end.setCustomValidity(reversed ? 'Đến ngày phải từ ngày bắt đầu trở đi.' : '');
+  });
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!rawData?.website_daily?.length) return;
+    customDateRange = { start: start.value, end: end.value };
+    currentFilter = 'custom';
+    updateFilteredViews();
+  });
 
   document.getElementById('traffic-data-mode').addEventListener('change', () => {
     if (rawData) renderTrafficSources(getFilteredWebsiteDaily());
@@ -81,6 +106,15 @@ async function loadData() {
     }
   }
 
+  const dates = rawData.website_daily || [];
+  if (dates.length) {
+    for (const id of ['date-from', 'date-to']) {
+      const input = document.getElementById(id);
+      input.min = dates[0].date;
+      input.max = dates.at(-1).date;
+      if (!input.value) input.value = id === 'date-from' ? input.min : input.max;
+    }
+  }
   renderMetadata();
   renderAllDashboard();
 }
@@ -114,10 +148,8 @@ function getFilteredWebsiteDaily() {
   if (!rawData || !rawData.website_daily) return [];
   const list = rawData.website_daily;
   if (currentFilter === 'all') return list;
-  if (currentFilter === 'history') return list.filter(d => d.date <= '2026-11-17');
-  if (currentFilter === 'live') return list.filter(d => d.date >= '2026-11-18');
-  if (currentFilter === 'scenario') {
-    const [start, end] = (window.CHAM_DI_SAN_TRAFFIC_SCENARIO?.period || '').split('/');
+  if (currentFilter === 'custom' && customDateRange) {
+    const { start, end } = customDateRange;
     return list.filter(row => row.date >= start && row.date <= end);
   }
 

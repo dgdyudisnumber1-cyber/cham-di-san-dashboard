@@ -5,7 +5,7 @@
     "ga4_property_id": "563712293",
     "reporting_start_date": "2026-10-05",
     "latest_ga4_date": "2026-11-24",
-    "last_updated_at": "2026-11-25T12:41:25+07:00",
+    "last_updated_at": "2026-11-25 13:00:18+07:00",
     "data_sources": {
       "historical_period": "2026-10-05 đến 2026-11-17 (44 ngày từ báo cáo GA4 đã lưu)",
       "live_ga4_period": "2026-11-18 đến 2026-11-24 (Google Analytics Data API)",
@@ -523,13 +523,13 @@
     },
     {
       "date": "2026-11-24",
+      "period": "2026-11-24/2026-11-24",
+      "original_source": "GA4 Property 563712293",
       "active_users": 0,
       "sessions": 0,
       "page_views": 0,
       "data_source": "Google Analytics Data API",
-      "sync_type": "Động (GA4 Daily API - GitHub Actions)",
-      "period": "2026-11-24/2026-11-24",
-      "original_source": "GA4 Property 563712293"
+      "sync_type": "Động (GA4 Daily API - GitHub Actions)"
     }
   ],
   "ga4_sources_live": [

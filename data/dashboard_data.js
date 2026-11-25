@@ -5,7 +5,7 @@ window.CHAM_DI_SAN_DATA = {
     "ga4_property_id": "563712293",
     "reporting_start_date": "2026-10-05",
     "latest_ga4_date": "2026-11-24",
-    "last_updated_at": "2026-11-25 15:33:52+07:00",
+    "last_updated_at": "2026-11-25 17:36:20+07:00",
     "data_sources": {
       "historical_period": "2026-10-05 đến 2026-11-17 (44 ngày từ báo cáo GA4 đã lưu)",
       "live_ga4_period": "2026-11-18 đến 2026-11-24 (Google Analytics Data API)",

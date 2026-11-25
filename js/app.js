@@ -189,29 +189,40 @@ function renderTab1KPIs() {
     `Facebook: ${fbInteractions.toLocaleString('vi-VN')} · TikTok: ${ttInteractions.toLocaleString('vi-VN')}`;
 }
 
-function estimateTrendDatasets(daily, metrics) {
-  const estimates = new Map((window.CHAM_DI_SAN_TRAFFIC_SCENARIO?.daily_rows || [])
+function applyTrendEstimates(daily, datasets, metrics) {
+  const scenarios = new Map((window.CHAM_DI_SAN_TRAFFIC_SCENARIO?.daily_rows || [])
     .map(row => [row.date, row]));
-  if (!daily.some(row => estimates.has(row.date))) return [];
-  const names = {
-    page_views: 'Lượt xem trang',
-    sessions: 'Phiên',
-    active_users: 'Người dùng hoạt động'
-  };
-  const colors = { page_views: '#2563eb', sessions: '#0284c7', active_users: '#047857' };
-  return metrics.map(metric => ({
-    label: names[metric] + ' · ước tính',
-    data: daily.map(row => estimates.get(row.date)?.[metric] ?? null),
-    borderColor: colors[metric],
-    backgroundColor: 'transparent',
-    borderDash: [7, 4],
-    borderWidth: 3,
-    pointRadius: 4,
-    pointStyle: 'rectRot',
-    pointBackgroundColor: colors[metric],
-    spanGaps: false,
-    tension: 0
-  }));
+  if (!daily.some(row => scenarios.has(row.date))) return datasets;
+
+  return datasets.map((dataset, index) => {
+    const metric = metrics[index];
+    const estimates = daily.map(row => scenarios.get(row.date)?.[metric]);
+    const hasEstimate = point => Number.isFinite(estimates[point]);
+    return {
+      ...dataset,
+      data: dataset.data.map((actual, point) => hasEstimate(point) ? estimates[point] : actual),
+      actualValues: dataset.data,
+      estimates,
+      pointStyle: context => hasEstimate(context.dataIndex) ? 'rectRot' : 'circle',
+      pointRadius: context => hasEstimate(context.dataIndex) ? 4 : (dataset.pointRadius ?? 3),
+      segment: {
+        borderDash: context => hasEstimate(context.p0DataIndex) || hasEstimate(context.p1DataIndex)
+          ? [7, 4] : []
+      }
+    };
+  });
+}
+
+function trendTooltipLabel(context) {
+  const { dataset, dataIndex, parsed } = context;
+  const label = dataset.label + ': ';
+  if (!Number.isFinite(dataset.estimates?.[dataIndex])) {
+    return label + displayNumber(parsed.y) + ' (GA4)';
+  }
+  return [
+    label + displayNumber(parsed.y) + ' (ước tính từ Sheet)',
+    'GA4 thực tế: ' + displayNumber(dataset.actualValues[dataIndex])
+  ];
 }
 
 function renderTab1Charts() {
@@ -222,9 +233,9 @@ function renderTab1Charts() {
     type: 'line',
     data: {
       labels: daily.map(d => formatDate(d.date)),
-      datasets: [
+      datasets: applyTrendEstimates(daily, [
         {
-          label: 'Lượt xem trang · GA4',
+          label: 'Lượt xem trang',
           data: daily.map(d => d.page_views),
           borderColor: '#2563eb',
           backgroundColor: 'rgba(37, 99, 235, 0.1)',
@@ -233,7 +244,7 @@ function renderTab1Charts() {
           borderWidth: 2
         },
         {
-          label: 'Phiên · GA4',
+          label: 'Phiên',
           data: daily.map(d => d.sessions),
           borderColor: '#0284c7',
           backgroundColor: 'rgba(2, 132, 199, 0.1)',
@@ -242,21 +253,23 @@ function renderTab1Charts() {
           borderWidth: 2
         },
         {
-          label: 'Người dùng hoạt động · GA4',
+          label: 'Người dùng hoạt động',
           data: daily.map(d => d.active_users),
           borderColor: '#10b981',
           backgroundColor: 'transparent',
           borderWidth: 2,
           pointRadius: 2
-        },
-        ...estimateTrendDatasets(daily, ['page_views', 'sessions', 'active_users'])
-      ]
+        }
+      ], ['page_views', 'sessions', 'active_users'])
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { position: 'top' } },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: { callbacks: { label: trendTooltipLabel } }
+      },
       scales: {
         y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
         x: { grid: { display: false } }
@@ -375,9 +388,9 @@ function renderTab2Charts() {
     type: 'line',
     data: {
       labels: daily.map(d => formatDate(d.date)),
-      datasets: [
+      datasets: applyTrendEstimates(daily, [
         {
-          label: 'Phiên · GA4',
+          label: 'Phiên',
           data: daily.map(d => d.sessions),
           borderColor: '#2563eb',
           backgroundColor: 'rgba(37, 99, 235, 0.15)',
@@ -386,21 +399,23 @@ function renderTab2Charts() {
           borderWidth: 2
         },
         {
-          label: 'Người dùng hoạt động · GA4',
+          label: 'Người dùng hoạt động',
           data: daily.map(d => d.active_users),
           borderColor: '#10b981',
           backgroundColor: 'rgba(16, 185, 129, 0.1)',
           fill: true,
           tension: 0.3,
           borderWidth: 2
-        },
-        ...estimateTrendDatasets(daily, ['sessions', 'active_users'])
-      ]
+        }
+      ], ['sessions', 'active_users'])
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { position: 'top' } },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: { callbacks: { label: trendTooltipLabel } }
+      },
       scales: {
         y: { beginAtZero: true },
         x: { grid: { display: false } }

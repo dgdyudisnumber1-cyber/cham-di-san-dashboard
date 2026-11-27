@@ -4,11 +4,11 @@ window.CHAM_DI_SAN_DATA = {
     "description": "Báo cáo hiệu suất số đa kênh: Website (GA4), TikTok và Facebook",
     "ga4_property_id": "563712293",
     "reporting_start_date": "2026-10-05",
-    "latest_ga4_date": "2026-11-25",
-    "last_updated_at": "2026-11-26 17:07:59+07:00",
+    "latest_ga4_date": "2026-11-26",
+    "last_updated_at": "2026-11-27 17:13:22+07:00",
     "data_sources": {
       "historical_period": "2026-10-05 đến 2026-11-17 (44 ngày từ báo cáo GA4 đã lưu)",
-      "live_ga4_period": "2026-11-18 đến 2026-11-25 (Google Analytics Data API)",
+      "live_ga4_period": "2026-11-18 đến 2026-11-26 (Google Analytics Data API)",
       "facebook_period": "2026-10-05 đến 2026-11-17 (19 bài đăng)",
       "tiktok_period": "2026-10-05 đến 2026-11-17 (8 video + 1 ảnh)"
     },
@@ -538,6 +538,16 @@ window.CHAM_DI_SAN_DATA = {
       "active_users": 2,
       "sessions": 4,
       "page_views": 6,
+      "data_source": "Google Analytics Data API",
+      "sync_type": "Động (GA4 Daily API - GitHub Actions)"
+    },
+    {
+      "date": "2026-11-26",
+      "period": "2026-11-26/2026-11-26",
+      "original_source": "GA4 Property 563712293",
+      "active_users": 0,
+      "sessions": 0,
+      "page_views": 0,
       "data_source": "Google Analytics Data API",
       "sync_type": "Động (GA4 Daily API - GitHub Actions)"
     }
